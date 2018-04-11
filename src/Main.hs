@@ -1,16 +1,20 @@
-{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import Dhall
+import QuickData.Randomize
+import QuickData.Types
 
-data Example = Example { foo :: Integer, bar :: Vector Double }
-  deriving (Generic, Show)
-
-instance Interpret Example
+import           Dhall
+import           Data.Text       as T
+import qualified Data.ByteString as B
 
 main :: IO ()
 main = do 
-  x <- input auto "./config"
-  print (x :: Example)
+  -- Testing for Random Functions
+  name <- randomBigInt
+  word <- randomDateTime
+  print name
+  print word
+  -- x <- input auto "./config"
+  -- print (x :: Example)

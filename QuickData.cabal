@@ -17,5 +17,11 @@ executable QuickData
   hs-source-dirs:      src
   main-is:             Main.hs
   default-language:    Haskell2010
+  other-modules:       QuickData.Randomize
+                       QuickData.Types
   build-depends:       base >= 4.7 && < 5
                      , dhall
+                     , random
+                     , text
+                     , bytestring
+                     , datetime
