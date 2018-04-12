@@ -19,6 +19,7 @@ executable QuickData
   default-language:    Haskell2010
   other-modules:       QuickData.Randomize
                        QuickData.Types
+                       QuickData.Sql
   build-depends:       base >= 4.7 && < 5
                      , dhall
                      , random
