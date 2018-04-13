@@ -20,9 +20,9 @@ executable QuickData
   other-modules:       QuickData.Randomize
                        QuickData.Types
                        QuickData.Sql
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base       >= 4.7 && < 5
+                     , bytestring
+                     , datetime
                      , dhall
                      , random
                      , text
-                     , bytestring
-                     , datetime

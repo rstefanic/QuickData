@@ -11,7 +11,8 @@ newtype Words = Words [String] deriving (Eq, Show)
 
 data Column = 
      Column { columnName :: T.Text
-            , columnType :: T.Text
+            , columnType :: SqlType
+            , maxLength  :: Maybe Int
             , allowNull  :: Bool
             }
      deriving (Eq, Show)

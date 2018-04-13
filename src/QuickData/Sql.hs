@@ -6,8 +6,8 @@ import QuickData.Randomize
 import QuickData.Types
 import Control.Monad
 
-import Data.List           as L
-import Data.Text           as T
+import Data.List as L
+import Data.Text as T
 
 insertValues :: Table -> Text
 insertValues table =
@@ -15,11 +15,16 @@ insertValues table =
              , tableName $ metaData table 
              , T.concat [" (", T.intercalate ", " $ fmap columnName (columns table), ") "]
              , "VALUES "
+             --, createValues table
              ] 
 
--- randomizeValues :: Column -> Text
--- randomizeValues column = getRandomizedTypeData sqlType 
---     where sqlType = columnType column
+createValues :: Table -> IO [Text]
+createValues table = traverse id $ createValues' (columns table) (rowCount $ metaData table)
+    where getValues = fmap (getRandomizedTypeData . columnType)
+          createValues' :: Columns -> Int -> [IO Text]
+          createValues' columns n 
+                | n > 1 = getValues columns ++ createValues' columns (n - 1)
+                | otherwise = getValues columns
 
 getRandomizedTypeData :: SqlType -> IO Text
 getRandomizedTypeData sqlType = 
@@ -30,8 +35,8 @@ getRandomizedTypeData sqlType =
         SqlTinyInt  -> pack . show <$> randomTinyInt
         SqlBit      -> pack . show <$> randomBit
         SqlFloat    -> pack . show <$> randomFloat
-        --SqlDate   -> pack . show <$> randomDate
         SqlDateTime -> pack . show <$> randomDateTime
+        --SqlDate   -> pack . show <$> randomDate
         --SqlChar _ -> pack . show <$> randomChar
         --SqlText   -> pack . show <$> randomText
         _           -> return $ pack ("ERR" :: String)

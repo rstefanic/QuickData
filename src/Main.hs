@@ -16,12 +16,12 @@ exampleTable =
                               , rowCount = 4 
                               }
         , columns = [ Column { columnName = "first_name"
-                             , columnType = "Text" 
+                             , columnType = SqlBit
                              , maxLength  = Just 20
                              , allowNull  = True 
                              }  
                     , Column { columnName = "last_name"
-                             , columnType = "Text" 
+                             , columnType = SqlSmallInt
                              , maxLength  = Just 25
                              , allowNull  = False 
                              }
