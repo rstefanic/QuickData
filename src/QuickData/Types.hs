@@ -44,13 +44,13 @@ data SqlType
     | SqlDate
     | SqlDateTime
     | SqlText
-    | SqlNText 
     | SqlChar Size
-    | SqlNChar Size
     | SqlVarChar Size
-    | SqlNVarChar Size
     | SqlBinary Size
     | SqlVarBinary Size
+    -- | SqlNText 
+    -- | SqlNChar Size
+    -- | SqlNVarChar Size
     deriving (Eq, Show)
 
 data Example = 

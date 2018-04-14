@@ -20,6 +20,7 @@ import           QuickData.Types
 
 import           Data.Char
 import           Data.DateTime
+import qualified Data.Text             as T
 import qualified Data.ByteString.Lazy  as B
 import qualified Data.ByteString.Char8 as C
 import           System.Random  (random, randomIO, randomRIO)

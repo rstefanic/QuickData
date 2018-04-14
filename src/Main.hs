@@ -7,8 +7,9 @@ import QuickData.Types
 import QuickData.Sql
 
 import           Dhall
-import           Data.Text       as T
+import qualified Data.Text       as T
 import qualified Data.ByteString as B
+import           Data.Text.IO (writeFile) 
 
 exampleTable :: Table 
 exampleTable = 

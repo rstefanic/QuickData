@@ -4,10 +4,11 @@ module QuickData.Sql where
 
 import QuickData.Randomize
 import QuickData.Types
-import Control.Monad
 
-import Data.List as L
-import Data.Text as T
+import Control.Monad
+import Data.DateTime 
+import Data.List     as L
+import Data.Text     as T
 
 insertValues :: Table -> IO Text
 insertValues table = do
@@ -37,16 +38,14 @@ wrapInsertInParentheses :: IO Text -> IO Text
 wrapInsertInParentheses text = text >>= \text' -> return $ T.concat ["(", text', ")"]
 
 getRandomizedTypeData :: SqlType -> IO Text
-getRandomizedTypeData sqlType = 
-    case sqlType of
-        SqlBigInt   -> pack . show <$> randomBigInt
-        SqlInt      -> pack . show <$> randomInt
-        SqlSmallInt -> pack . show <$> randomSmallInt
-        SqlTinyInt  -> pack . show <$> randomTinyInt
-        SqlBit      -> pack . show <$> randomBit
-        SqlFloat    -> pack . show <$> randomFloat
-        SqlDateTime -> pack . show <$> randomDateTime
-        --SqlDate   -> pack . show <$> randomDate
+getRandomizedTypeData SqlBigInt   = pack . show <$> randomBigInt
+getRandomizedTypeData SqlInt      = pack . show <$> randomInt
+getRandomizedTypeData SqlSmallInt = pack . show <$> randomSmallInt
+getRandomizedTypeData SqlTinyInt  = pack . show <$> randomTinyInt
+getRandomizedTypeData SqlBit      = pack . show <$> randomBit
+getRandomizedTypeData SqlFloat    = pack . show <$> randomFloat
+getRandomizedTypeData SqlDateTime = pack . toSqlString <$> randomDateTime
+getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> randomDateTime
         --SqlChar _ -> pack . show <$> randomChar
         --SqlText   -> pack . show <$> randomText
-        _           -> return $ pack ("ERR" :: String)
+getRandomizedTypeData _           = return $ pack ("ERR" :: String)
