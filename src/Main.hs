@@ -29,7 +29,7 @@ exampleTable =
         }
 
 main :: IO ()
-main = print $ insertValues exampleTable
+main = insertValues exampleTable >>= \x -> print x
   -- Testing for Random Functions
   -- name <- randomBigInt
   -- word <- randomDateTime
