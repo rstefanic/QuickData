@@ -25,10 +25,10 @@ cutoffLength str max = T.concat $ cutoffLength' str 0
 --     | SqlVarChar (Size n) = randomName >>= \name -> cutoffLength name n
 --     | otherwise           = error "Invalid type passed to getName"
 
-buildLongTexts :: Int -> StateT (Int, [String]) IO (Int, [String])
+buildLongTexts :: Int -> StateT (Int, [String]) IO [String]
 buildLongTexts max = StateT $ 
     \(currentLength, str) -> do 
         word <- liftIO randomDictWord
         if length word + currentLength < max
         then runStateT (buildLongTexts max) (currentLength + length word, str ++ [word])
-        else return ((currentLength, str), (currentLength, str))
+        else return (str, (currentLength, str))

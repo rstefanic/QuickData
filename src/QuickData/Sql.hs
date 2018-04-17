@@ -60,5 +60,5 @@ getRandomizedTypeData _           = return $ pack ("ERR" :: String)
 
 buildTexts :: Size -> IO Text
 buildTexts (Size n) = wrapInSingleQuotes $ pack . L.unwords 
-                    . snd <$> evalStateT (buildLongTexts n) (0, [])
+                    <$> evalStateT (buildLongTexts n) (0, [])
 buildTexts Max      = buildTexts $ Size 8000
