@@ -17,13 +17,11 @@ exampleTable =
                               , rowCount = 4 
                               }
         , columns = [ Column { columnName = "first_name"
-                             , columnType = SqlBit
-                             , maxLength  = Just 20
+                             , columnType = SqlChar (Size 50)
                              , allowNull  = True 
                              }  
                     , Column { columnName = "last_name"
                              , columnType = SqlSmallInt
-                             , maxLength  = Just 25
                              , allowNull  = False 
                              }
                     ]

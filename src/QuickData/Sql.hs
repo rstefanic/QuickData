@@ -3,9 +3,11 @@
 module QuickData.Sql where
 
 import QuickData.Randomize
+import QuickData.Generate
 import QuickData.Types
 
 import Control.Monad
+import Control.Monad.State.Lazy
 import Data.DateTime 
 import Data.List     as L
 import Data.Text     as T
@@ -37,15 +39,26 @@ getValuesForColumn = wrapInsertInParentheses
 wrapInsertInParentheses :: IO Text -> IO Text
 wrapInsertInParentheses text = text >>= \text' -> return $ T.concat ["(", text', ")"]
 
+wrapInSingleQuotes :: IO Text -> IO Text
+wrapInSingleQuotes text = text >>= \text' -> return $ T.concat ["'", text', "'"]
+
 getRandomizedTypeData :: SqlType -> IO Text
-getRandomizedTypeData SqlBigInt   = pack . show <$> randomBigInt
-getRandomizedTypeData SqlInt      = pack . show <$> randomInt
-getRandomizedTypeData SqlSmallInt = pack . show <$> randomSmallInt
-getRandomizedTypeData SqlTinyInt  = pack . show <$> randomTinyInt
-getRandomizedTypeData SqlBit      = pack . show <$> randomBit
-getRandomizedTypeData SqlFloat    = pack . show <$> randomFloat
-getRandomizedTypeData SqlDateTime = pack . toSqlString <$> randomDateTime
-getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> randomDateTime
-        --SqlChar _ -> pack . show <$> randomChar
-        --SqlText   -> pack . show <$> randomText
+getRandomizedTypeData SqlBigInt           = pack . show <$> randomBigInt
+getRandomizedTypeData SqlInt              = pack . show <$> randomInt
+getRandomizedTypeData SqlSmallInt         = pack . show <$> randomSmallInt
+getRandomizedTypeData SqlTinyInt          = pack . show <$> randomTinyInt
+getRandomizedTypeData SqlBit              = pack . show <$> randomBit
+getRandomizedTypeData SqlFloat            = pack . show <$> randomFloat
+getRandomizedTypeData SqlDateTime         = pack . toSqlString <$> randomDateTime
+getRandomizedTypeData (SqlChar      size) = buildTexts size
+getRandomizedTypeData (SqlVarChar   size) = buildTexts size
+-- getRandomizedTypeData (SqlBinary    size) = buildBinary size
+-- getRandomizedTypeData (SqlVarBinary size) = buildBinary size
+getRandomizedTypeData SqlDate             = pack . formatDateTime "yyyy-MM-dd" 
+                                              <$> randomDateTime
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)
+
+buildTexts :: Size -> IO Text
+buildTexts (Size n) = wrapInSingleQuotes $ pack . L.unwords 
+                    . snd <$> evalStateT (buildLongTexts n) (0, [])
+buildTexts Max      = buildTexts $ Size 8000

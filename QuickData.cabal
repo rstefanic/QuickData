@@ -25,5 +25,6 @@ executable QuickData
                      , bytestring
                      , datetime
                      , dhall
+                     , mtl
                      , random
                      , text
