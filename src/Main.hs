@@ -17,11 +17,11 @@ exampleTable =
                               , rowCount = 4 
                               }
         , columns = [ Column { columnName = "first_name"
-                             , columnType = SqlChar (Size 50)
+                             , columnType = SqlChar (Size 50) (Just Name)
                              , allowNull  = True 
                              }  
                     , Column { columnName = "last_name"
-                             , columnType = SqlSmallInt
+                             , columnType = SqlVarChar (Size 50) (Just DictWords)
                              , allowNull  = False 
                              }
                     ]

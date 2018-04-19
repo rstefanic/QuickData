@@ -43,19 +43,24 @@ wrapInSingleQuotes :: IO Text -> IO Text
 wrapInSingleQuotes text = text >>= \text' -> return $ T.concat ["'", text', "'"]
 
 getRandomizedTypeData :: SqlType -> IO Text
-getRandomizedTypeData SqlBigInt           = pack . show <$> randomBigInt
-getRandomizedTypeData SqlInt              = pack . show <$> randomInt
-getRandomizedTypeData SqlSmallInt         = pack . show <$> randomSmallInt
-getRandomizedTypeData SqlTinyInt          = pack . show <$> randomTinyInt
-getRandomizedTypeData SqlBit              = pack . show <$> randomBit
-getRandomizedTypeData SqlFloat            = pack . show <$> randomFloat
-getRandomizedTypeData SqlDateTime         = pack . toSqlString <$> randomDateTime
-getRandomizedTypeData (SqlChar      size) = buildTexts size
-getRandomizedTypeData (SqlVarChar   size) = buildTexts size
--- getRandomizedTypeData (SqlBinary    size) = buildBinary size
--- getRandomizedTypeData (SqlVarBinary size) = buildBinary size
-getRandomizedTypeData SqlDate             = pack . formatDateTime "yyyy-MM-dd" 
-                                              <$> randomDateTime
+
+-- Number and Dates
+getRandomizedTypeData SqlBigInt   = pack . show <$> randomBigInt
+getRandomizedTypeData SqlInt      = pack . show <$> randomInt
+getRandomizedTypeData SqlSmallInt = pack . show <$> randomSmallInt
+getRandomizedTypeData SqlTinyInt  = pack . show <$> randomTinyInt
+getRandomizedTypeData SqlBit      = pack . show <$> randomBit
+getRandomizedTypeData SqlFloat    = pack . show <$> randomFloat
+getRandomizedTypeData SqlDateTime = pack . toSqlString <$> randomDateTime
+getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> randomDateTime
+
+-- Text Values
+getRandomizedTypeData (SqlVarChar size textValue) = 
+    getRandomizedTypeData (SqlChar size textValue)
+getRandomizedTypeData (SqlChar size textValue) = 
+    case textValue of
+        Just Name -> pack <$> getName size
+        _         -> buildTexts size
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)
 
 buildTexts :: Size -> IO Text

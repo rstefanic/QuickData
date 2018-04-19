@@ -12,18 +12,15 @@ withinLength :: String -> Int -> Bool
 withinLength str i | length str < i = True
                    | otherwise      = False
 
-cutoffLength :: String -> Int -> T.Text
-cutoffLength str max = T.concat $ cutoffLength' str 0
+cutoffLength :: String -> Int -> String
+cutoffLength str max = cutoffLength' str 0
   where cutoffLength' []     n = []
-        cutoffLength' (x:xs) n | n < max   = T.singleton x : cutoffLength' xs (n + 1)
-                               | otherwise = [T.singleton x]
+        cutoffLength' (x:xs) n | n < max   = x : cutoffLength' xs (n + 1)
+                               | otherwise = [x]
 
--- getName :: SqlType -> IO T.Text
--- getName sqlType 
---     | SqlText             = randomName
---     | SqlChar    (Size n) = randomName >>= \name -> cutoffLength name n
---     | SqlVarChar (Size n) = randomName >>= \name -> cutoffLength name n
---     | otherwise           = error "Invalid type passed to getName"
+getName :: Size -> IO String
+getName Max      = randomName >>= \name -> return $ cutoffLength name 8000
+getName (Size n) = randomName >>= \name -> return $ cutoffLength name n
 
 buildLongTexts :: Int -> StateT (Int, [String]) IO [String]
 buildLongTexts max = StateT $ 

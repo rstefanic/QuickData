@@ -33,6 +33,11 @@ data Size
     | Max
     deriving (Eq, Show)
 
+data TextValue 
+    = DictWords
+    | Name 
+    deriving (Eq, Show)
+
 data SqlType 
     = SqlBigInt
     | SqlInt 
@@ -43,10 +48,10 @@ data SqlType
     | SqlDate
     | SqlDateTime
     | SqlText
-    | SqlChar Size
-    | SqlVarChar Size
-    | SqlBinary Size
-    | SqlVarBinary Size
+    | SqlChar Size (Maybe TextValue)
+    | SqlVarChar Size (Maybe TextValue)
+    | SqlBinary Size (Maybe TextValue)
+    | SqlVarBinary Size (Maybe TextValue)
     -- | SqlNText 
     -- | SqlNChar Size
     -- | SqlNVarChar Size
