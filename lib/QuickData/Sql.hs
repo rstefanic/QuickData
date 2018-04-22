@@ -13,7 +13,7 @@ import Data.Text                as T
 insertValues :: Table -> IO Text
 insertValues table = do
     values <- createValuesFromTable table
-    let columnNames = columnName <$> columns table
+    let columnNames = columnName <$> (getColumns . columns) table
     return $ T.concat [ "INSERT INTO "
                       , tableName $ metaData table 
                       , T.concat [" (", T.intercalate ", " columnNames, ") "]
@@ -23,7 +23,7 @@ insertValues table = do
                       ] 
 
 createValuesFromTable :: Table -> IO [Text]
-createValuesFromTable table = traverse id $ createValues (columns table) (rowCount $ metaData table)
+createValuesFromTable table = traverse id $ createValues (getColumns $ columns table) (rowCount $ metaData table)
     where createValues columns' n 
                 | n > 1 = getValuesForColumn columns' : createValues columns' (n - 1)
                 | otherwise = [getValuesForColumn columns']

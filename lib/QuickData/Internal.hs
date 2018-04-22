@@ -7,7 +7,6 @@ import           Control.Monad.State.Lazy
 import qualified Data.Text                as T
 import           GHC.Generics (Generic)
 
-type Columns = [Column]
 
 -- Table Information for Input
 
@@ -17,18 +16,24 @@ data Table =
            }
      deriving (Eq, Show, Generic)
 
+newtype Columns = Columns [Column]
+    deriving (Eq, Show)
+
+getColumns :: Columns -> [Column]
+getColumns (Columns x) = x
+
 data MetaData =
      MetaData { tableName :: !T.Text
               , rowCount  :: !Integer
               }
-     deriving (Eq, Show)
+     deriving (Eq, Show, Generic)
 
 data Column = 
      Column { columnName :: T.Text
             , columnType :: SqlType
             , allowNull  :: Bool
             }
-     deriving (Eq, Show)
+     deriving (Eq, Show, Generic)
 
 -- | Sql Types and Helper Types
 
