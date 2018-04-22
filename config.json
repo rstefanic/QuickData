@@ -1,0 +1,16 @@
+{
+    "metaData": {
+      "tableName": "test_table",
+      "rowCount" : 4
+    },
+    "columns" : [
+      { "columnName": "first_name" 
+      , "columnType": "SqlChar (Size 50) DictWords"
+      , "allowNull" : false
+      }, 
+      { "columnName": "last_name" 
+      , "columnType": "SqlChar (Size 50) Name"
+      , "allowNull" : false
+      }
+    ]
+}

@@ -1,30 +1,45 @@
 name:                QuickData
 version:             0.1.0.0
 synopsis:            Quick Dummy Data for SQL
--- description:
---homepage:            https://github.com/githubuser/QuickData#readme
 license:             BSD3
 license-file:        LICENSE
-author:              Robert Stefanic
-maintainer:          rstefanic72@gmail.com
+author:              Robert Stefanic (rstefanic72@gmail.com)
+maintainer:          Robert Stefanic (rstefanic72@gmail.com)
 copyright:           2018 Robert Stefanic
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.md
 
-executable QuickData
-  hs-source-dirs:      src
-  main-is:             Main.hs
-  default-language:    Haskell2010
-  other-modules:       QuickData.Randomize
-                       QuickData.Generate
-                       QuickData.Types
-                       QuickData.Sql
-  build-depends:       base       >= 4.7 && < 5
-                     , bytestring
-                     , datetime
-                     , dhall
-                     , mtl
-                     , random
-                     , text
+Library
+  hs-source-dirs:    lib
+  default-language:  Haskell2010
+  Ghc-options:       -Wall
+
+  exposed-modules:       
+    QuickData.Internal
+    QuickData.Main
+    QuickData.Parse
+    QuickData.Randomize
+    QuickData.Sql
+
+  build-depends:
+    aeson,
+    base        >= 4.7 && < 5,
+    bytestring,
+    datetime,
+    mtl,
+    random,
+    text,
+    transformers
+
+
+Executable QuickData
+  Main-is:          Main.hs
+  Hs-source-dirs:   src
+  Ghc-options:      -Wall -threaded 
+  Default-language: Haskell2010
+
+  Build-depends:
+    base >= 4 && < 5,
+    QuickData
