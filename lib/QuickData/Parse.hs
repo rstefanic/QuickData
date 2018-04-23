@@ -40,19 +40,19 @@ instance FromJSON TextValue
 instance FromJSON SqlType
 
 toSqlType :: T.Text -> SqlType
-toSqlType "BigInt"    = SqlBitInt
+toSqlType "BigInt"    = SqlBigInt
 toSqlType "Int"       = SqlInt
 toSqlType "SmallInt"  = SqlSmallInt
 toSqlType "TinyInt"   = SqlTinyInt
-toSqlType "Bit"       = SqlBitInt
+toSqlType "Bit"       = SqlBit
 toSqlType "Float"     = SqlFloat
 toSqlType "Date"      = SqlDate
 toSqlType "DateTime"  = SqlDateTime
 toSqlType "Text"      = SqlText
 toSqlType "Char"      = SqlChar (Size 80) (Just DictWords)
 toSqlType "VarChar"   = SqlVarChar (Size 80) (Just DictWords)
-toSqlType "Binary"    = SqlBinary (Size 80) (Just Dictwords)
-toSqlType "VarBinary" = SqlVarBinary (Size 80) (Just Dictwords)
+toSqlType "Binary"    = SqlBinary (Size 80) (Just DictWords)
+toSqlType "VarBinary" = SqlVarBinary (Size 80) (Just DictWords)
 toSqlType _           = SqlInt
 
 tableInfoFile :: FilePath
