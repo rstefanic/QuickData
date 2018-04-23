@@ -2,7 +2,6 @@
 
 module QuickData.Parse 
         ( getConfig
-        , tableInfoFile
         ) where
 
 import QuickData.Internal 
@@ -25,6 +24,10 @@ instance FromJSON MetaData where
         <$> x .: "tableName"
         <*> x .: "rowCount"
 
+data TextInfo = TextInfo { size      :: Size
+                         , textValue :: TextValue
+                         } deriving (Eq, Show)
+
 instance FromJSON Column where
     parseJSON = withObject "Column" $ \x -> do
         columnName <- x .: "columnName"
@@ -37,8 +40,20 @@ instance FromJSON TextValue
 instance FromJSON SqlType
 
 toSqlType :: T.Text -> SqlType
-toSqlType "SqlVarChar" = SqlVarChar (Size 80) (Just DictWords)
-toSqlType _            = SqlInt
+toSqlType "BigInt"    = SqlBitInt
+toSqlType "Int"       = SqlInt
+toSqlType "SmallInt"  = SqlSmallInt
+toSqlType "TinyInt"   = SqlTinyInt
+toSqlType "Bit"       = SqlBitInt
+toSqlType "Float"     = SqlFloat
+toSqlType "Date"      = SqlDate
+toSqlType "DateTime"  = SqlDateTime
+toSqlType "Text"      = SqlText
+toSqlType "Char"      = SqlChar (Size 80) (Just DictWords)
+toSqlType "VarChar"   = SqlVarChar (Size 80) (Just DictWords)
+toSqlType "Binary"    = SqlBinary (Size 80) (Just Dictwords)
+toSqlType "VarBinary" = SqlVarBinary (Size 80) (Just Dictwords)
+toSqlType _           = SqlInt
 
 tableInfoFile :: FilePath
 tableInfoFile = "./config.json"
