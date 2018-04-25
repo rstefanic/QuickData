@@ -4,9 +4,7 @@ module QuickData.Main
   ( main 
   ) where
 
--- import           QuickData.Randomize
--- import           QuickData.Internal
--- import           QuickData.Sql
+import           QuickData.Sql
 import qualified QuickData.Parse as Parse
 
 --import           Data.Text.IO (writeFile) 
@@ -14,4 +12,5 @@ import qualified QuickData.Parse as Parse
 main :: IO ()
 main = do 
   config <- Parse.getConfig 
-  print config
+  insertStatement <- insertValues config 
+  print insertStatement

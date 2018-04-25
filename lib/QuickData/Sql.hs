@@ -57,8 +57,8 @@ getRandomizedTypeData (SqlVarChar size textValue) =
     getRandomizedTypeData (SqlChar size textValue)
 getRandomizedTypeData (SqlChar size textValue) = 
     case textValue of
-        Just Name -> pack <$> Randomize.name size
-        _         -> buildTexts size
+        Name -> pack <$> Randomize.name size
+        _    -> buildTexts size
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)
 
 buildTexts :: Size -> IO Text

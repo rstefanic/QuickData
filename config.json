@@ -1,16 +1,31 @@
 {
-    "metaData": {
+  "metaData": {
       "tableName": "test_table",
-      "rowCount" : 4
-    },
-    "columns" : [
-      { "columnName": "first_name" 
-      , "columnType": "SqlChar (Size 50) DictWords"
-      , "allowNull" : false
-      }, 
-      { "columnName": "last_name" 
-      , "columnType": "SqlChar (Size 50) Name"
-      , "allowNull" : false
-      }
-    ]
+      "rowCount" : 20
+  }
+  ,
+  "columns": [
+    { 
+      "columnName": "first_name"
+    , "columnType": "Char"
+    , "textInfo"  :
+        {
+          "size"      : 80
+        , "textValue" : "Name"
+        }
+    , "allowNull" : false
+    }
+    ,
+    {
+      "columnName": "last_name"
+    , "columnType": "VarChar"
+    , "textInfo"  : 
+        {
+          "size"      : 80
+        , "textValue" : "Name"
+        }
+    , "allowNull" : false
+    }
+  ]
+    
 }

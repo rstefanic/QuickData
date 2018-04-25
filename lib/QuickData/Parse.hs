@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric     #-}
 
 module QuickData.Parse 
         ( getConfig
@@ -7,11 +8,13 @@ module QuickData.Parse
 import QuickData.Internal 
 
 import           Data.Aeson
+import           Data.Aeson.Types          as AT
 import qualified Data.ByteString.Lazy      as B
 import qualified Data.HashMap              as HM
 import qualified Data.Text                 as T
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
+import           GHC.Generics              (Generic)
 
 instance FromJSON Table where
     parseJSON = withObject "Table" $ \obj -> do
@@ -24,36 +27,44 @@ instance FromJSON MetaData where
         <$> x .: "tableName"
         <*> x .: "rowCount"
 
-data TextInfo = TextInfo { size      :: Size
-                         , textValue :: TextValue
-                         } deriving (Eq, Show)
+data TextInfo = TextInfo { size      :: Integer
+                         , textValue :: TextValue }
+    deriving (Eq, Show, Generic)
+
+instance FromJSON TextInfo 
 
 instance FromJSON Column where
     parseJSON = withObject "Column" $ \x -> do
         columnName <- x .: "columnName"
-        columnType <- toSqlType <$> x .: "columnType"
+        columnType <- x .: "columnType"
+        textInfo   <- x .:? "textInfo" :: AT.Parser (Maybe TextInfo)
         allowNull  <- x .: "allowNull"
-        return $ Column columnName columnType allowNull
+        return $ 
+            Column columnName (toSqlType textInfo columnType) allowNull
 
 instance FromJSON Size
 instance FromJSON TextValue
 instance FromJSON SqlType
 
-toSqlType :: T.Text -> SqlType
-toSqlType "BigInt"    = SqlBigInt
-toSqlType "Int"       = SqlInt
-toSqlType "SmallInt"  = SqlSmallInt
-toSqlType "TinyInt"   = SqlTinyInt
-toSqlType "Bit"       = SqlBit
-toSqlType "Float"     = SqlFloat
-toSqlType "Date"      = SqlDate
-toSqlType "DateTime"  = SqlDateTime
-toSqlType "Text"      = SqlText
-toSqlType "Char"      = SqlChar (Size 80) (Just DictWords)
-toSqlType "VarChar"   = SqlVarChar (Size 80) (Just DictWords)
-toSqlType "Binary"    = SqlBinary (Size 80) (Just DictWords)
-toSqlType "VarBinary" = SqlVarBinary (Size 80) (Just DictWords)
-toSqlType _           = SqlInt
+toSqlType :: Maybe TextInfo -> T.Text -> SqlType
+toSqlType _ "BigInt"            = SqlBigInt
+toSqlType _ "Int"               = SqlInt
+toSqlType _ "SmallInt"          = SqlSmallInt
+toSqlType _ "TinyInt"           = SqlTinyInt
+toSqlType _ "Bit"               = SqlBit
+toSqlType _ "Float"             = SqlFloat
+toSqlType _ "Date"              = SqlDate
+toSqlType _ "DateTime"          = SqlDateTime
+toSqlType _ "Text"              = SqlText
+toSqlType (Just ti) "Char"      = SqlChar      (Size $ size ti) (textValue ti)
+toSqlType (Just ti) "VarChar"   = SqlVarChar   (Size $ size ti) (textValue ti)
+toSqlType (Just ti) "Binary"    = SqlBinary    (Size $ size ti) (textValue ti)
+toSqlType (Just ti) "VarBinary" = SqlVarBinary (Size $ size ti) (textValue ti)
+toSqlType Nothing "Char"        = SqlChar      Max              DictWords
+toSqlType Nothing "VarChar"     = SqlChar      Max              DictWords
+toSqlType Nothing "Binary"      = SqlChar      Max              DictWords
+toSqlType Nothing "VarBinary"   = SqlChar      Max              DictWords
+toSqlType _ _                   = error "Could not parse SqlType"
 
 tableInfoFile :: FilePath
 tableInfoFile = "./config.json"
