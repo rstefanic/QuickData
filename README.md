@@ -4,8 +4,8 @@
 Inspired by [QuickCheck](https://hackage.haskell.org/package/QuickCheck), QuickData is a way to generate dummy rows for a SQL database. Given a definition in a config file, an INSERT statement that can be used for a SQL database.
 
 ## Example
----
-####Config File
+
+#### Config File
 ```javascript 
 {
   "metaData": 
@@ -53,7 +53,7 @@ INSERT INTO test_table (first_name, last_name, age) VALUES (Silvie, Lanita, 218)
 ```
 
 ## Install
----
+
 **Clone and install from stack**
 ```
 git clone https://github.com/rstefanic/QuickData
