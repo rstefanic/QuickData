@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module QuickData.Randomize (
-     name 
-   , buildTexts
-   , tinyInt
-   , smallInt
-   , int
-   , bigInt
-   , double
-   , float
-   , bit
-   , byte
-   , dateTime
-   ) where
+module QuickData.Randomize 
+  ( name 
+  , buildTexts
+  , tinyInt
+  , smallInt
+  , int
+  , bigInt
+  , double
+  , float
+  , bit
+  , byte
+  , dateTime
+  ) where
 
 import           QuickData.Internal
 

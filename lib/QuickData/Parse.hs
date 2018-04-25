@@ -2,8 +2,8 @@
 {-# LANGUAGE DeriveGeneric     #-}
 
 module QuickData.Parse 
-        ( getConfig
-        ) where
+    ( getConfig
+    ) where
 
 import QuickData.Internal 
 
@@ -56,10 +56,10 @@ toSqlType (Just ti) "Char"      = SqlChar      (Size $ size ti) (textValue ti)
 toSqlType (Just ti) "VarChar"   = SqlVarChar   (Size $ size ti) (textValue ti)
 toSqlType (Just ti) "Binary"    = SqlBinary    (Size $ size ti) (textValue ti)
 toSqlType (Just ti) "VarBinary" = SqlVarBinary (Size $ size ti) (textValue ti)
-toSqlType Nothing "Char"        = SqlChar      Max              DictWords
-toSqlType Nothing "VarChar"     = SqlChar      Max              DictWords
-toSqlType Nothing "Binary"      = SqlChar      Max              DictWords
-toSqlType Nothing "VarBinary"   = SqlChar      Max              DictWords
+toSqlType Nothing "Char"        = SqlChar       Max              DictWords
+toSqlType Nothing "VarChar"     = SqlChar       Max              DictWords
+toSqlType Nothing "Binary"      = SqlChar       Max              DictWords
+toSqlType Nothing "VarBinary"   = SqlChar       Max              DictWords
 toSqlType _ errType             = error $ T.unpack $ T.concat 
                                     ["Could not parse ", errType, " into a SQL Type."]
 

@@ -64,6 +64,6 @@ getRandomizedTypeData (SqlChar size textValue) =
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)
 
 buildTexts :: Size -> IO Text
-buildTexts (Size n) = wrapInSingleQuotes $ pack . L.unwords 
-                    <$> evalStateT (Randomize.buildTexts n) (0, [])
 buildTexts Max      = buildTexts $ Size 8000
+buildTexts (Size n) = wrapInSingleQuotes $ pack . L.unwords 
+                        <$> evalStateT (Randomize.buildTexts n) (0, [])
