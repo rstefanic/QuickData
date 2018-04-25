@@ -16,13 +16,12 @@ module QuickData.Randomize (
 
 import           QuickData.Internal
 
+import           Prelude hiding (max)
 import           Control.Monad.State.Lazy
 import           Data.Char
-import qualified Data.ByteString.Lazy  as B
 import qualified Data.ByteString.Char8 as C
 import           Data.DateTime
-import qualified Data.Text             as T
-import           System.Random  (random, randomIO, randomRIO)
+import           System.Random  (randomIO, randomRIO)
 
 type TextResult = StateT (Int, [String]) IO [String]
 

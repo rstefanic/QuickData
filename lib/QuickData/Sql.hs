@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module QuickData.Sql where
+module QuickData.Sql 
+    ( insertValues
+    ) where
 
 import           QuickData.Internal
 import qualified QuickData.Randomize as Randomize

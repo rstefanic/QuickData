@@ -7,8 +7,6 @@ module QuickData.Main
 import           QuickData.Sql
 import qualified QuickData.Parse as Parse
 
---import           Data.Text.IO (writeFile) 
-
 main :: IO ()
 main = do 
   config <- Parse.getConfig 

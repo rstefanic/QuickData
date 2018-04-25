@@ -10,9 +10,7 @@ import QuickData.Internal
 import           Data.Aeson
 import           Data.Aeson.Types          as AT
 import qualified Data.ByteString.Lazy      as B
-import qualified Data.HashMap              as HM
 import qualified Data.Text                 as T
-import           Control.Monad
 import           Control.Monad.Trans.Maybe
 import           GHC.Generics              (Generic)
 
@@ -30,7 +28,6 @@ instance FromJSON MetaData where
 data TextInfo = TextInfo { size      :: Integer
                          , textValue :: TextValue }
     deriving (Eq, Show, Generic)
-
 instance FromJSON TextInfo 
 
 instance FromJSON Column where
@@ -39,8 +36,7 @@ instance FromJSON Column where
         columnType <- x .: "columnType"
         textInfo   <- x .:? "textInfo" :: AT.Parser (Maybe TextInfo)
         allowNull  <- x .: "allowNull"
-        return $ 
-            Column columnName (toSqlType textInfo columnType) allowNull
+        return $ Column columnName (toSqlType textInfo columnType) allowNull
 
 instance FromJSON Size
 instance FromJSON TextValue
@@ -64,7 +60,8 @@ toSqlType Nothing "Char"        = SqlChar      Max              DictWords
 toSqlType Nothing "VarChar"     = SqlChar      Max              DictWords
 toSqlType Nothing "Binary"      = SqlChar      Max              DictWords
 toSqlType Nothing "VarBinary"   = SqlChar      Max              DictWords
-toSqlType _ _                   = error "Could not parse SqlType"
+toSqlType _ errType             = error $ T.unpack $ T.concat 
+                                    ["Could not parse ", errType, " into a SQL Type."]
 
 tableInfoFile :: FilePath
 tableInfoFile = "./config.json"

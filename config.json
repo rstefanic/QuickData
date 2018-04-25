@@ -1,17 +1,19 @@
 {
-  "metaData": {
+  "metaData": 
+  {
       "tableName": "test_table",
       "rowCount" : 20
   }
   ,
-  "columns": [
+  "columns": 
+  [
     { 
       "columnName": "first_name"
     , "columnType": "Char"
     , "textInfo"  :
         {
-          "size"      : 80
-        , "textValue" : "Name"
+          "size"     : 80
+        , "textValue": "Name"
         }
     , "allowNull" : false
     }
@@ -21,11 +23,16 @@
     , "columnType": "VarChar"
     , "textInfo"  : 
         {
-          "size"      : 80
-        , "textValue" : "Name"
+          "size"     : 80
+        , "textValue": "Name"
         }
     , "allowNull" : false
     }
+    ,
+    {
+      "columnName": "age"
+    , "columnType": "SmallInt"
+    , "allowNull" : false
+    }
   ]
-    
 }
