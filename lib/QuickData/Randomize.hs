@@ -14,14 +14,14 @@ module QuickData.Randomize
   , dateTime
   ) where
 
-import           QuickData.Internal
-
 import           Prelude hiding (max)
 import           Control.Monad.State.Lazy
 import           Data.Char
 import qualified Data.ByteString.Char8 as C
 import           Data.DateTime
 import           System.Random  (randomIO, randomRIO)
+
+import           QuickData.Internal
 
 type TextResult = StateT (Int, [String]) IO [String]
 

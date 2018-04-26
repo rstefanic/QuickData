@@ -5,14 +5,14 @@ module QuickData.Parse
     ( getConfig
     ) where
 
-import QuickData.Internal 
-
 import           Data.Aeson
-import           Data.Aeson.Types          as AT
+import qualified Data.Aeson.Types          as AT
 import qualified Data.ByteString.Lazy      as B
 import qualified Data.Text                 as T
 import           Control.Monad.Trans.Maybe
 import           GHC.Generics              (Generic)
+
+import QuickData.Internal 
 
 instance FromJSON Table where
     parseJSON = withObject "Table" $ \obj -> do

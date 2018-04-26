@@ -4,11 +4,11 @@ module QuickData.Main
   ( main 
   ) where
 
-import           QuickData.Sql
+import qualified QuickData.Sql   as SQL
 import qualified QuickData.Parse as Parse
 
 main :: IO ()
 main = do 
   config <- Parse.getConfig 
-  insertStatement <- insertValues config 
+  insertStatement <- SQL.insertValues config 
   print insertStatement

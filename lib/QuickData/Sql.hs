@@ -4,13 +4,14 @@ module QuickData.Sql
     ( insertValues
     ) where
 
-import           QuickData.Internal
-import qualified QuickData.Randomize as Randomize
-
 import Control.Monad.State.Lazy
 import Data.DateTime 
 import Data.List                as L
 import Data.Text                as T
+import System.Random            (randomRIO)
+
+import QuickData.Internal
+import qualified QuickData.Randomize as Randomize
 
 insertValues :: Table -> IO Text
 insertValues table = do
@@ -34,7 +35,16 @@ getValuesForColumn :: [Column] -> IO Text
 getValuesForColumn = wrapInsertInParentheses 
                      . fmap (T.intercalate ", ") 
                      . sequence 
-                     . fmap (getRandomizedTypeData . columnType)
+                     . fmap valueOnlyOrNulls
+
+valueOnlyOrNulls :: Column -> IO Text
+valueOnlyOrNulls c | allowNull c = do
+                        r <- randomRIO (0, 1) :: IO Int
+                        if r == 1
+                            then return $ pack "NULL"
+                            else getDataFromType c
+                   | otherwise   = getDataFromType c
+    where getDataFromType = getRandomizedTypeData . columnType
 
 wrapInsertInParentheses :: IO Text -> IO Text
 wrapInsertInParentheses text = text >>= \text' -> return $ T.concat ["(", text', ")"]
