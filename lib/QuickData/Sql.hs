@@ -53,25 +53,39 @@ wrapInSingleQuotes :: IO Text -> IO Text
 wrapInSingleQuotes text = text >>= \text' -> return $ T.concat ["'", text', "'"]
 
 getRandomizedTypeData :: SqlType -> IO Text
-
--- Number and Dates
 getRandomizedTypeData SqlBigInt   = pack . show <$> Randomize.bigInt
 getRandomizedTypeData SqlInt      = pack . show <$> Randomize.int
 getRandomizedTypeData SqlSmallInt = pack . show <$> Randomize.smallInt
 getRandomizedTypeData SqlTinyInt  = pack . show <$> Randomize.tinyInt
 getRandomizedTypeData SqlBit      = pack . show <$> Randomize.bit
 getRandomizedTypeData SqlFloat    = pack . show <$> Randomize.float
-getRandomizedTypeData SqlDateTime = pack . toSqlString <$> Randomize.dateTime
-getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> Randomize.dateTime
-
--- Text Values
+getRandomizedTypeData SqlDateTime = pack . toSqlString 
+                                                <$> Randomize.dateTime
+getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" 
+                                                <$> Randomize.dateTime
+getRandomizedTypeData (SqlBinary size _) = 
+                                    Randomize.bigInt >>= \int ->
+                                    return . pack $ castToBinary size int
+getRandomizedTypeData (SqlVarBinary size _) = 
+                                    buildTexts size >>= \value -> 
+                                    return . pack $ castToVarBinary size value
 getRandomizedTypeData (SqlVarChar size textValue) = 
-    getRandomizedTypeData (SqlChar size textValue)
+                                    getRandomizedTypeData (SqlChar size textValue)
 getRandomizedTypeData (SqlChar size textValue) = 
-    case textValue of
-        Name -> pack <$> Randomize.name size
-        _    -> buildTexts size
+                                    case textValue of
+                                        Just Name -> pack <$> Randomize.name size
+                                        _         -> buildTexts size
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)
+
+castToBinary :: Size -> Integer -> String
+castToBinary Max value      = castToBinary (Size 8000) value
+castToBinary (Size n) value = "CAST( " ++ show value ++ " AS BINARY(" ++
+                                show n ++ ") )"
+
+castToVarBinary :: Size -> Text -> String
+castToVarBinary Max value      = castToVarBinary (Size 8000) value
+castToVarBinary (Size n) value = "CAST( '" ++ unpack value ++ "' AS VARBINARY(" ++
+                                    show n ++ ") )"
 
 buildTexts :: Size -> IO Text
 buildTexts Max      = buildTexts $ Size 8000

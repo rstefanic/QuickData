@@ -25,16 +25,16 @@ instance FromJSON MetaData where
         <$> x .: "tableName"
         <*> x .: "rowCount"
 
-data TextInfo = TextInfo { size      :: Integer
-                         , textValue :: TextValue }
+data ValueInfo = ValueInfo { size      :: Integer
+                           , textValue :: Maybe TextValue }
     deriving (Eq, Show, Generic)
-instance FromJSON TextInfo 
+instance FromJSON ValueInfo 
 
 instance FromJSON Column where
     parseJSON = withObject "Column" $ \x -> do
         columnName <- x .: "columnName"
         columnType <- x .: "columnType"
-        textInfo   <- x .:? "textInfo" :: AT.Parser (Maybe TextInfo)
+        textInfo   <- x .:? "textInfo" :: AT.Parser (Maybe ValueInfo)
         allowNull  <- x .: "allowNull"
         return $ Column columnName (toSqlType textInfo columnType) allowNull
 
@@ -42,7 +42,7 @@ instance FromJSON Size
 instance FromJSON TextValue
 instance FromJSON SqlType
 
-toSqlType :: Maybe TextInfo -> T.Text -> SqlType
+toSqlType :: Maybe ValueInfo -> T.Text -> SqlType
 toSqlType _ "BigInt"            = SqlBigInt
 toSqlType _ "Int"               = SqlInt
 toSqlType _ "SmallInt"          = SqlSmallInt
@@ -52,14 +52,14 @@ toSqlType _ "Float"             = SqlFloat
 toSqlType _ "Date"              = SqlDate
 toSqlType _ "DateTime"          = SqlDateTime
 toSqlType _ "Text"              = SqlText
-toSqlType (Just ti) "Char"      = SqlChar      (Size $ size ti) (textValue ti)
-toSqlType (Just ti) "VarChar"   = SqlVarChar   (Size $ size ti) (textValue ti)
-toSqlType (Just ti) "Binary"    = SqlBinary    (Size $ size ti) (textValue ti)
-toSqlType (Just ti) "VarBinary" = SqlVarBinary (Size $ size ti) (textValue ti)
-toSqlType Nothing "Char"        = SqlChar       Max              DictWords
-toSqlType Nothing "VarChar"     = SqlChar       Max              DictWords
-toSqlType Nothing "Binary"      = SqlChar       Max              DictWords
-toSqlType Nothing "VarBinary"   = SqlChar       Max              DictWords
+toSqlType (Just vi) "Char"      = SqlChar      (Size $ size vi) (textValue vi)
+toSqlType (Just vi) "VarChar"   = SqlVarChar   (Size $ size vi) (textValue vi)
+toSqlType Nothing   "Char"      = SqlChar      (Size 80)        (Just DictWords)
+toSqlType Nothing   "VarChar"   = SqlChar      (Size 80)        (Just DictWords)
+toSqlType (Just vi) "Binary"    = SqlBinary    (Size $ size vi) Nothing
+toSqlType (Just vi) "VarBinary" = SqlVarBinary (Size $ size vi) (textValue vi)
+toSqlType Nothing   "Binary"    = SqlBinary    (Size 10)        Nothing
+toSqlType Nothing   "VarBinary" = SqlVarBinary (Size 50)        (Just DictWords)
 toSqlType _ errType             = error $ T.unpack $ T.concat 
                                     ["Could not parse ", errType, " into a SQL Type."]
 

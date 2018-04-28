@@ -64,8 +64,8 @@ data SqlType
     | SqlDate
     | SqlDateTime
     | SqlText
-    | SqlChar      Size TextValue
-    | SqlVarChar   Size TextValue
-    | SqlBinary    Size TextValue
-    | SqlVarBinary Size TextValue
+    | SqlChar      Size (Maybe TextValue)
+    | SqlVarChar   Size (Maybe TextValue)
+    | SqlBinary    Size (Maybe TextValue)
+    | SqlVarBinary Size (Maybe TextValue)
     deriving (Eq, Show, Generic)
