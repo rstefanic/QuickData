@@ -59,20 +59,12 @@ getRandomizedTypeData SqlSmallInt = pack . show <$> Randomize.smallInt
 getRandomizedTypeData SqlTinyInt  = pack . show <$> Randomize.tinyInt
 getRandomizedTypeData SqlBit      = pack . show <$> Randomize.bit
 getRandomizedTypeData SqlFloat    = pack . show <$> Randomize.float
-getRandomizedTypeData SqlDateTime = pack . toSqlString 
-                                                <$> Randomize.dateTime
-getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" 
-                                                <$> Randomize.dateTime
-getRandomizedTypeData (SqlBinary size _) = 
-                                    Randomize.bigInt >>= \int ->
-                                    return . pack $ castToBinary size int
-getRandomizedTypeData (SqlVarBinary size _) = 
-                                    buildTexts size >>= \value -> 
-                                    return . pack $ castToVarBinary size value
-getRandomizedTypeData (SqlVarChar size textValue) = 
-                                    getRandomizedTypeData (SqlChar size textValue)
-getRandomizedTypeData (SqlChar size textValue) = 
-                                    case textValue of
+getRandomizedTypeData SqlDateTime = pack . toSqlString <$> Randomize.dateTime
+getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> Randomize.dateTime
+getRandomizedTypeData (SqlBinary size _) = Randomize.bigInt >>= \int -> return . pack $ castToBinary size int
+getRandomizedTypeData (SqlVarBinary size _) = buildTexts size >>= \value -> return . pack $ castToVarBinary size value
+getRandomizedTypeData (SqlVarChar size textValue) = getRandomizedTypeData (SqlChar size textValue)
+getRandomizedTypeData (SqlChar size textValue) = case textValue of
                                         Just Name -> pack <$> Randomize.name size
                                         _         -> buildTexts size
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)

@@ -69,3 +69,21 @@ cd QuickData
 cabal update
 cabal install
 ```
+
+## Current SQL Types and Databases Supported
+
+### SQL Server
+
+- BigInt
+- Int
+- SmallInt
+- TinyInt
+- Bit
+- Float
+- Date
+- DateTime
+- Text
+- SqlChar
+- SqlVarChar
+- SqlBinary
+- SqlVarBinary
