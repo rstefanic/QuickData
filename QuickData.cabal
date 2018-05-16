@@ -30,6 +30,7 @@ Library
     datetime,
     hashmap,
     mtl,
+    optparse-applicative,
     random,
     text,
     transformers
