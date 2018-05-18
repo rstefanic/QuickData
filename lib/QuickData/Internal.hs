@@ -10,8 +10,14 @@ module QuickData.Internal
     , TextValue(..)
     , SqlType(..)
     , getColumns
+    , intRange
+    , bigIntRange
+    , tinyIntRange
+    , smallIntRange
+    , checkRange
     ) where
 
+import           Data.Aeson   (FromJSON)
 import qualified Data.Text                as T
 import           GHC.Generics (Generic)
 
@@ -45,27 +51,43 @@ data Column =
 -- | Sql Types and Helper Types
 
 data Size 
-    = Size Integer
+    = Size Integer Integer
     | Max
     deriving (Eq, Show, Generic)
+instance FromJSON Size
 
 data TextValue 
     = DictWords
     | Name 
     deriving (Eq, Show, Generic)
+instance FromJSON TextValue
 
 data SqlType 
-    = SqlBigInt
-    | SqlInt 
-    | SqlSmallInt
-    | SqlTinyInt
+    = SqlBigInt    Size
+    | SqlInt       Size
+    | SqlSmallInt  Size
+    | SqlTinyInt   Size
+    | SqlBinary    Size 
+    | SqlText      Size (Maybe TextValue)
+    | SqlChar      Size (Maybe TextValue)
+    | SqlVarChar   Size (Maybe TextValue)
+    | SqlVarBinary Size (Maybe TextValue)
     | SqlBit 
     | SqlFloat
     | SqlDate
     | SqlDateTime
-    | SqlText
-    | SqlChar      Size (Maybe TextValue)
-    | SqlVarChar   Size (Maybe TextValue)
-    | SqlBinary    Size (Maybe TextValue)
-    | SqlVarBinary Size (Maybe TextValue)
     deriving (Eq, Show, Generic)
+instance FromJSON SqlType
+
+-- | Range Constants and helper functions
+
+bigIntRange, intRange, tinyIntRange, smallIntRange :: (Integer, Integer)
+bigIntRange   = (-9223372036854775808, 9223372036854775807)
+intRange      = (-2147483648, 2147483647)
+tinyIntRange  = (0, 255)
+smallIntRange = (-32768, 32767)
+
+checkRange :: Ord a => a -> a -> (a, a) -> Bool
+checkRange givenMin givenMax (min', max') 
+    | givenMin >= min' && givenMax <= max' = True
+    | otherwise                            = False

@@ -1,11 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module QuickData.Randomize 
   ( name 
   , buildTexts
-  , tinyInt
-  , smallInt
-  , int
+  , randomizeFromRange 
   , bigInt
   , double
   , float
@@ -34,8 +33,8 @@ buildTexts max = StateT $
         else return (str, (currentLength, str))
 
 name :: Size -> IO String
-name Max      = getName >>= \x -> return $ cutoffLength x 8000
-name (Size n) = getName >>= \x -> return $ cutoffLength x n
+name Max          = getName >>= \x -> return $ cutoffLength x 8000
+name (Size _ max) = getName >>= \x -> return $ cutoffLength x max
 
 -- | Text Building Helpers
 withinLength :: String -> Integer -> Bool
@@ -71,17 +70,11 @@ getWord (Words wl) = do
   randomIndex <- randomRIO (0, length wl - 1)
   return $ filter (/= '\'') $ wl !! randomIndex
 
-tinyInt :: IO Int
-tinyInt = randomRIO (0, 255)
-
-smallInt :: IO Int
-smallInt = randomRIO (-32768, 32767)
-
-int :: IO Int
-int = randomRIO (-2147483648, 2147483647)
+randomizeFromRange :: Size -> IO Integer
+randomizeFromRange (Size min max) = randomRIO (min, max)
 
 bigInt :: IO Integer
-bigInt = randomRIO (-9223372036854775808, 9223372036854775807)
+bigInt = randomRIO bigIntRange
 
 double :: IO Double 
 double = randomIO :: IO Double

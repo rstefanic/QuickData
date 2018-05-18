@@ -53,15 +53,15 @@ wrapInSingleQuotes :: IO Text -> IO Text
 wrapInSingleQuotes text = text >>= \text' -> return $ T.concat ["'", text', "'"]
 
 getRandomizedTypeData :: SqlType -> IO Text
-getRandomizedTypeData SqlBigInt   = pack . show <$> Randomize.bigInt
-getRandomizedTypeData SqlInt      = pack . show <$> Randomize.int
-getRandomizedTypeData SqlSmallInt = pack . show <$> Randomize.smallInt
-getRandomizedTypeData SqlTinyInt  = pack . show <$> Randomize.tinyInt
+getRandomizedTypeData (SqlBigInt   range) = pack . show <$> Randomize.randomizeFromRange range
+getRandomizedTypeData (SqlInt      range) = pack . show <$> Randomize.randomizeFromRange range
+getRandomizedTypeData (SqlSmallInt range) = pack . show <$> Randomize.randomizeFromRange range
+getRandomizedTypeData (SqlTinyInt  range) = pack . show <$> Randomize.randomizeFromRange range
 getRandomizedTypeData SqlBit      = pack . show <$> Randomize.bit
 getRandomizedTypeData SqlFloat    = pack . show <$> Randomize.float
 getRandomizedTypeData SqlDateTime = pack . toSqlString <$> Randomize.dateTime
 getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> Randomize.dateTime
-getRandomizedTypeData (SqlBinary size _) = Randomize.bigInt >>= \int -> return . pack $ castToBinary size int
+getRandomizedTypeData (SqlBinary size) = Randomize.bigInt >>= \int -> return . pack $ castToBinary size int
 getRandomizedTypeData (SqlVarBinary size _) = buildTexts size >>= \value -> return . pack $ castToVarBinary size value
 getRandomizedTypeData (SqlVarChar size textValue) = getRandomizedTypeData (SqlChar size textValue)
 getRandomizedTypeData (SqlChar size textValue) = case textValue of
@@ -70,16 +70,18 @@ getRandomizedTypeData (SqlChar size textValue) = case textValue of
 getRandomizedTypeData _           = return $ pack ("ERR" :: String)
 
 castToBinary :: Size -> Integer -> String
-castToBinary Max value      = castToBinary (Size 8000) value
-castToBinary (Size n) value = "CAST( " ++ show value ++ " AS BINARY(" ++
-                                show n ++ ") )"
+castToBinary Max value          = castToBinary (Size 0 8000) value
+castToBinary (Size _ max) value = "CAST( " ++ show value ++ " AS BINARY(" ++
+                                show max ++ ") )"
 
 castToVarBinary :: Size -> Text -> String
-castToVarBinary Max value      = castToVarBinary (Size 8000) value
-castToVarBinary (Size n) value = "CAST( '" ++ unpack value ++ "' AS VARBINARY(" ++
-                                    show n ++ ") )"
+castToVarBinary Max value          = castToVarBinary (Size 0 8000) value
+castToVarBinary (Size _ max) value = "CAST( '" ++ unpack value ++ "' AS VARBINARY(" ++
+                                       show max ++ ") )"
 
 buildTexts :: Size -> IO Text
-buildTexts Max      = buildTexts $ Size 8000
-buildTexts (Size n) = wrapInSingleQuotes $ pack . L.unwords 
-                        <$> evalStateT (Randomize.buildTexts n) (0, [])
+buildTexts Max            = buildTexts $ Size 0 8000
+buildTexts (Size min max) = do
+                        randomMin <- randomRIO (min, max)
+                        wrapInSingleQuotes $ pack . L.unwords 
+                          <$> evalStateT (Randomize.buildTexts max) (fromIntegral randomMin, [])
