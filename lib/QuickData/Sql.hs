@@ -53,21 +53,21 @@ wrapInSingleQuotes :: IO Text -> IO Text
 wrapInSingleQuotes text = text >>= \text' -> return $ T.concat ["'", text', "'"]
 
 getRandomizedTypeData :: SqlType -> IO Text
-getRandomizedTypeData (SqlBigInt   range) = pack . show <$> Randomize.randomizeFromRange range
-getRandomizedTypeData (SqlInt      range) = pack . show <$> Randomize.randomizeFromRange range
-getRandomizedTypeData (SqlSmallInt range) = pack . show <$> Randomize.randomizeFromRange range
-getRandomizedTypeData (SqlTinyInt  range) = pack . show <$> Randomize.randomizeFromRange range
-getRandomizedTypeData SqlBit      = pack . show <$> Randomize.bit
-getRandomizedTypeData SqlFloat    = pack . show <$> Randomize.float
-getRandomizedTypeData SqlDateTime = pack . toSqlString <$> Randomize.dateTime
-getRandomizedTypeData SqlDate     = pack . formatDateTime "yyyy-MM-dd" <$> Randomize.dateTime
-getRandomizedTypeData (SqlBinary size) = Randomize.bigInt >>= \int -> return . pack $ castToBinary size int
+getRandomizedTypeData (SqlBigInt   r)       = pack . show <$> Randomize.randomizeFromRange r
+getRandomizedTypeData (SqlInt      r)       = pack . show <$> Randomize.randomizeFromRange r
+getRandomizedTypeData (SqlSmallInt r)       = pack . show <$> Randomize.randomizeFromRange r
+getRandomizedTypeData (SqlTinyInt  r)       = pack . show <$> Randomize.randomizeFromRange r
+getRandomizedTypeData SqlBit                = pack . show <$> Randomize.bit
+getRandomizedTypeData SqlFloat              = pack . show <$> Randomize.float
+getRandomizedTypeData SqlDateTime           = pack . toSqlString <$> Randomize.dateTime
+getRandomizedTypeData SqlDate               = pack . formatDateTime "yyyy-MM-dd" <$> Randomize.dateTime
+getRandomizedTypeData (SqlBinary size)      = Randomize.bigInt >>= \int -> return . pack $ castToBinary size int
 getRandomizedTypeData (SqlVarBinary size _) = buildTexts size >>= \value -> return . pack $ castToVarBinary size value
-getRandomizedTypeData (SqlVarChar size textValue) = getRandomizedTypeData (SqlChar size textValue)
-getRandomizedTypeData (SqlChar size textValue) = case textValue of
-                                        Just Name -> pack <$> Randomize.name size
-                                        _         -> buildTexts size
-getRandomizedTypeData _           = return $ pack ("ERR" :: String)
+getRandomizedTypeData (SqlVarChar size tv)  = getRandomizedTypeData (SqlChar size tv)
+getRandomizedTypeData (SqlChar size tv)     = case tv of
+                                                Just Name -> pack <$> Randomize.name size
+                                                _         -> buildTexts size
+getRandomizedTypeData _  = return $ pack ("ERR" :: String)
 
 castToBinary :: Size -> Integer -> String
 castToBinary Max value          = castToBinary (Size 0 8000) value
