@@ -10,10 +10,10 @@
     { 
       "columnName": "first_name"
     , "columnType": "Char"
-    , "textInfo"  :
+    , "valueInfo"  :
         {
-          "size"     : 80
-        , "textValue": "Name"
+          "maxValue"  : 80
+        , "textValue" : "Name"
         }
     , "allowNull" : false
     }
@@ -21,10 +21,10 @@
     {
       "columnName": "last_name"
     , "columnType": "VarChar"
-    , "textInfo"  : 
+    , "valueInfo"  : 
         {
-          "size"     : 80
-        , "textValue": "Name"
+          "maxValue"  : 80
+        , "textValue" : "Name"
         }
     , "allowNull" : false
     }
@@ -32,6 +32,11 @@
     {
       "columnName": "age"
     , "columnType": "TinyInt"
+    , "valueInfo" :
+      {
+        "minValue" : 20
+      , "maxValue" : 30
+      }
     , "allowNull" : false
     }
   ]
