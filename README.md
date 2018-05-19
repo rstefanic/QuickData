@@ -91,10 +91,10 @@ Currently, QuickData recognizes the following SQL Types:
 - Date
 - DateTime
 - Text
-- SqlChar
-- SqlVarChar
-- SqlBinary
-- SqlVarBinary
+- Char
+- VarChar
+- Binary
+- VarBinary
 
 ## Install
 
