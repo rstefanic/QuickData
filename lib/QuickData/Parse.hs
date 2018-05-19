@@ -9,7 +9,7 @@ import           Data.Aeson
 import qualified Data.Aeson.Types          as AT
 import qualified Data.ByteString.Lazy      as B
 import qualified Data.Text                 as T
-import           Control.Monad.Trans.Maybe
+import           Control.Monad.Trans.Either
 import           GHC.Generics              (Generic)
 
 import QuickData.Internal 
@@ -82,7 +82,7 @@ toSqlType Nothing   "TinyInt"   = SqlTinyInt   (sizeFromTuple tinyIntRange)
 toSqlType Nothing   "Text"      = SqlText      (sizeFromTuple (0, 80)) (Just DictWords)
 toSqlType Nothing   "Char"      = SqlChar      (sizeFromTuple (0, 80)) (Just DictWords)
 toSqlType Nothing   "VarChar"   = SqlChar      (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "VarBinary" = SqlVarBinary (sizeFromTuple (0, 50))  (Just DictWords)
+toSqlType Nothing   "VarBinary" = SqlVarBinary (sizeFromTuple (0, 50)) (Just DictWords)
 toSqlType Nothing   "Binary"    = SqlBinary    (sizeFromTuple (0, 10))  
 toSqlType _         "Bit"       = SqlBit
 toSqlType _         "Float"     = SqlFloat
@@ -99,12 +99,12 @@ outOfRangeErr valueType = error $ T.unpack $ T.concat
 tableInfoFile :: FilePath
 tableInfoFile = "./config.json"
 
-parseConfig :: MaybeT IO Table
-parseConfig = MaybeT $ decode <$> B.readFile tableInfoFile 
+parseConfig :: EitherT String IO Table
+parseConfig = EitherT $ eitherDecode <$> B.readFile tableInfoFile 
         
 getConfig :: IO Table
 getConfig = do 
-    table <- runMaybeT parseConfig
+    table <- runEitherT parseConfig
     case table of
-        Just  x -> return x
-        Nothing -> error "Could not parse config file"
+        Right x  -> return x
+        Left err -> error $ err ++ "\n\n"
