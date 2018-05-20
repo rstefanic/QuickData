@@ -3,7 +3,8 @@
 
 module QuickData.Randomize 
   ( name 
-  , buildTexts
+  , buildUTF8Texts
+  , buildUnicodeTexts
   , randomizeFromRange 
   , bigInt
   , double
@@ -24,13 +25,21 @@ import           QuickData.Internal
 
 type TextResult = StateT (Int, [String]) IO [String]
 
-buildTexts :: Integer -> TextResult
-buildTexts max = StateT $ 
+buildUTF8Texts :: Integer -> TextResult
+buildUTF8Texts max = StateT $ 
     \(currentLength, str) -> do 
-        word <- liftIO dictWord
+        word <- liftIO utf8DictWord
         if length word + currentLength < fromInteger max
-        then runStateT (buildTexts max) (currentLength + length word, str ++ [word])
-        else return (str, (currentLength, str))
+          then runStateT (buildUTF8Texts max) (currentLength + length word, str ++ [word])
+          else return (str, (currentLength, str))
+
+buildUnicodeTexts :: Integer -> TextResult
+buildUnicodeTexts max = StateT $ 
+    \(currentLength, str) -> do
+        word <- liftIO unicodeDictWord
+        if length word + currentLength < fromInteger max
+          then runStateT (buildUnicodeTexts max) (currentLength + length word, str ++ [word])
+          else return (str, (currentLength, str))
 
 name :: Size -> IO String
 name Max          = getName >>= \x -> return $ cutoffLength x 8000
@@ -49,9 +58,14 @@ cutoffLength str max = cutoffLength' str 0
 
 newtype Words = Words [String] deriving (Eq, Show)
 
-dict :: IO Words
-dict = do
+utf8Dict :: IO Words
+utf8Dict = do
   wl <- readFile "data/dict.txt"
+  return (Words $ lines wl)
+
+unicodeDict :: IO Words
+unicodeDict = do
+  wl <- readFile "data/greek.txt"
   return (Words $ lines wl)
 
 names :: IO Words
@@ -62,8 +76,11 @@ names = do
 getName :: IO String
 getName = names >>= getWord
 
-dictWord :: IO String
-dictWord = dict >>= getWord
+utf8DictWord :: IO String
+utf8DictWord = utf8Dict >>= getWord
+
+unicodeDictWord :: IO String
+unicodeDictWord = unicodeDict >>= getWord
 
 getWord :: Words -> IO String
 getWord (Words wl) = do 

@@ -68,10 +68,13 @@ data SqlType
     | SqlSmallInt  Size
     | SqlTinyInt   Size
     | SqlBinary    Size 
+    | SqlVarBinary Size
     | SqlText      Size (Maybe TextValue)
+    | SqlNText     Size (Maybe TextValue)
     | SqlChar      Size (Maybe TextValue)
+    | SqlNChar     Size (Maybe TextValue)
     | SqlVarChar   Size (Maybe TextValue)
-    | SqlVarBinary Size (Maybe TextValue)
+    | SqlNVarChar  Size (Maybe TextValue)
     | SqlBit 
     | SqlFloat
     | SqlDate
