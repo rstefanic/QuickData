@@ -2,7 +2,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
 module QuickData.Randomize 
-  ( name 
+  ( TextResult
+  , name 
   , buildUTF8Texts
   , buildUnicodeTexts
   , randomizeFromRange 

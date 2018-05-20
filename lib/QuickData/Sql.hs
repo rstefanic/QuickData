@@ -62,17 +62,18 @@ getRandomizedTypeData SqlFloat              = pack . show <$> Randomize.float
 getRandomizedTypeData SqlDateTime           = pack . toSqlString <$> Randomize.dateTime
 getRandomizedTypeData SqlDate               = pack . formatDateTime "yyyy-MM-dd" <$> Randomize.dateTime
 getRandomizedTypeData (SqlBinary size)      = Randomize.bigInt >>= \int -> return . pack $ castToBinary size int
-getRandomizedTypeData (SqlVarBinary size)   = buildUTF8Texts size >>= \value -> return . pack $ castToVarBinary size value
 getRandomizedTypeData (SqlChar size tv)     = getRandomizedTypeData (SqlVarChar size tv)
 getRandomizedTypeData (SqlNChar size tv)    = getRandomizedTypeData (SqlNVarChar size tv)
 getRandomizedTypeData (SqlText size tv)     = getRandomizedTypeData (SqlVarChar size tv)
 getRandomizedTypeData (SqlNText size tv)    = getRandomizedTypeData (SqlNVarChar size tv)
+getRandomizedTypeData (SqlVarBinary size)   = buildTexts Randomize.buildUTF8Texts size >>= 
+                                                \value -> return . pack $ castToVarBinary size value
 getRandomizedTypeData (SqlVarChar size tv)  = case tv of
                                                 Just Name -> pack <$> Randomize.name size
-                                                _         -> buildUTF8Texts size
+                                                _         -> buildTexts Randomize.buildUTF8Texts size
 getRandomizedTypeData (SqlNVarChar size tv) = case tv of
                                                 Just Name -> pack <$> Randomize.name size
-                                                _         -> buildUnicodeTexts size
+                                                _         -> buildTexts Randomize.buildUnicodeTexts size
 getRandomizedTypeData _  = return $ pack ("ERR" :: String)
 
 castToBinary :: Size -> Integer -> String
@@ -85,16 +86,9 @@ castToVarBinary Max value          = castToVarBinary (Size 0 8000) value
 castToVarBinary (Size _ max) value = "CAST( '" ++ unpack value ++ "' AS VARBINARY(" ++
                                        show max ++ ") )"
 
-buildUTF8Texts :: Size -> IO Text
-buildUTF8Texts Max            = buildUTF8Texts $ Size 0 8000
-buildUTF8Texts (Size min max) = do
-                        randomMin <- randomRIO (min, max)
-                        wrapInSingleQuotes $ pack . L.unwords 
-                          <$> evalStateT (Randomize.buildUTF8Texts max) (fromIntegral randomMin, [])
-
-buildUnicodeTexts :: Size -> IO Text
-buildUnicodeTexts Max            = buildUnicodeTexts $ Size 0 8000
-buildUnicodeTexts (Size min max) = do
-                        randomMin <- randomRIO(min, max)
-                        wrapInSingleQuotes $ pack . L.unwords
-                          <$> evalStateT (Randomize.buildUnicodeTexts max) (fromIntegral randomMin, [])
+buildTexts :: (Integer -> Randomize.TextResult) -> Size -> IO Text
+buildTexts textResult Max = buildTexts textResult $ Size 0 8000
+buildTexts textResult (Size minRange maxRange) = do
+  randomMin <- randomRIO (minRange, maxRange)
+  wrapInSingleQuotes $ pack . L.unwords
+    <$> evalStateT (textResult maxRange) (fromIntegral randomMin, [])
