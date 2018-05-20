@@ -56,7 +56,7 @@ INSERT INTO test_table (first_name, last_name, age) VALUES (Silvie, Lanita, 218)
 
 In the root folder where the project sits, there is a config.json file. Editing the config file to like the one above will output an insert statement that was specified in the config file.
 
-The JSON file has two top level objects: the ```metadata``` (i.e. the table name and the row count) and a ```columns``` array, which defines the columns for the table. Each column must have a ```columnName```, ```columnType```, and a ```allowNull```. An optional object called ```valueInfo``` may be added to your column. If you have a ```valueInfo```, then the ```maxValue``` must be defined. The other two optional values that may be added are ```minValue``` and the ```textValue```.  
+The JSON file has two top level objects: the ```metadata``` (i.e. the table name and the row count) and a ```columns``` array, which defines the columns for the table. Each column must have a ```columnName```, ```columnType```, and a ```allowNull```. An optional object called ```valueInfo``` may be added to your column. If you have a ```valueInfo```, then the ```maxValue``` must be defined. The other two optional values that may be added are ```minValue``` and the ```textValue```.   
 
 In the example above, there is an age column. If I wanted to define a minimum and maxmimum age, I could define the age column like so:
 
@@ -77,8 +77,7 @@ This would then limit the age range from 20 to 30. If I add a minimum or maximum
 
 In addition to the SQL number types, I can also add a minimum and maximum range for a text column. 
 
-Adding a ```textValue``` option to a column that doesn't have text will be discarded.
-
+Adding a ```textValue``` option to a column that doesn't have text will be discarded. If the SQL type supports unicode, then the randomized data will Greek.
 
 Currently, QuickData recognizes the following SQL Types:
 
@@ -91,8 +90,11 @@ Currently, QuickData recognizes the following SQL Types:
 - Date
 - DateTime
 - Text
+- NText
 - Char
+- NChar
 - VarChar
+- NVarChar
 - Binary
 - VarBinary
 
