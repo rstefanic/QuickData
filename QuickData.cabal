@@ -25,6 +25,7 @@ Library
 
   build-depends:
     aeson,
+    aeson-better-errors,
     base >=4.2 && <4.9,
     bytestring,
     datetime,
