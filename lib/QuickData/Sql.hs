@@ -8,6 +8,7 @@ import Control.Monad.State.Lazy
 import Data.DateTime 
 import Data.List                as L
 import Data.Text                as T
+import Prelude                  hiding (min, max)
 import System.Random            (randomRIO)
 
 import QuickData.Internal
@@ -16,7 +17,7 @@ import qualified QuickData.Randomize as Randomize
 insertValues :: Table -> IO Text
 insertValues table = do
     values <- createValuesFromTable table
-    let columnNames = columnName <$> (getColumns . columns) table
+    let columnNames = columnName <$> columns table
     return $ T.concat [ "INSERT INTO "
                       , tableName $ metaData table 
                       , T.concat [" (", T.intercalate ", " columnNames, ") "]
@@ -26,7 +27,8 @@ insertValues table = do
                       ] 
 
 createValuesFromTable :: Table -> IO [Text]
-createValuesFromTable table = traverse id $ createValues (getColumns $ columns table) (rowCount $ metaData table)
+createValuesFromTable table = traverse id $ createValues (columns table)
+        (numberOfRecords $ metaData table)
     where createValues columns' n 
                 | n > 1 = getValuesForColumn columns' : createValues columns' (n - 1)
                 | otherwise = [getValuesForColumn columns']
@@ -74,7 +76,6 @@ getRandomizedTypeData (SqlVarChar size tv)  = case tv of
 getRandomizedTypeData (SqlNVarChar size tv) = case tv of
                                                 Just Name -> pack <$> Randomize.name size
                                                 _         -> buildTexts Randomize.buildUnicodeTexts size
-getRandomizedTypeData _  = return $ pack ("ERR" :: String)
 
 castToBinary :: Size -> Integer -> String
 castToBinary Max value          = castToBinary (Size 0 8000) value

@@ -5,112 +5,204 @@ module QuickData.Parse
     ( getConfig
     ) where
 
-import           Data.Aeson
-import qualified Data.Aeson.Types          as AT
-import qualified Data.ByteString.Lazy      as B
-import qualified Data.Text                 as T
-import           Control.Monad.Trans.Either
-import           GHC.Generics              (Generic)
+import qualified Data.Text                  as T
+import           Data.Void
+import           Data.Monoid                ((<>))
+import           Prelude                    hiding (min, max)
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
 
 import QuickData.Internal 
 
-instance FromJSON Table where
-    parseJSON = withObject "Table" $ \obj -> do
-        metaData <- obj .: "metaData"
-        columns  <- (obj .: "columns") >>= fmap Columns . parseJSON
-        return $ Table metaData columns
+type Parser = Parsec Void String
 
-instance FromJSON MetaData where
-    parseJSON = withObject "MetaData" $ \x -> MetaData
-        <$> x .: "tableName"
-        <*> x .: "rowCount"
+-- | Lexer
 
-data ValueInfo = ValueInfo { maxValue  :: Integer 
-                           , minValue  :: Maybe Integer
-                           , textValue :: Maybe TextValue }
-    deriving (Eq, Show, Generic)
-instance FromJSON ValueInfo 
+spaceConsumer :: Parser ()
+spaceConsumer = L.space whitespace (L.skipLineComment "--") empty
+    where whitespace = (char ' ' <|> newline) >> return ()
 
-instance FromJSON Column where
-    parseJSON = withObject "Column" $ \x -> do
-        columnName <- x .: "columnName"
-        columnType <- x .: "columnType"
-        textInfo   <- x .:? "valueInfo" :: AT.Parser (Maybe ValueInfo)
-        allowNull  <- x .: "allowNull"
-        return $ Column columnName (toSqlType textInfo columnType) allowNull
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme spaceConsumer
 
-determineSize :: ValueInfo -> Integer -> Size
-determineSize valueInfo defaultMin = 
-    case minVal of
-        Nothing   -> Size defaultMin maxVal
-        Just min' -> Size min' maxVal
-    where minVal = minValue valueInfo
-          maxVal = maxValue valueInfo
+integer :: Parser Integer
+integer = lexeme L.decimal
 
-sizeFromTuple :: (Integer, Integer) -> Size
-sizeFromTuple (x, y) = Size x y
+rword :: String -> Parser ()
+rword word = (lexeme . try) (string' word *> notFollowedBy alphaNumChar)
 
-type Range = (Integer, Integer)
+reservedWords :: [String]
+reservedWords = 
+    [ "for", "with", "records", "column"
+    , "name", "nullable", "type", "maxvalue"
+    , "textvalue", "min", "max", "true", "false"
+    , "bigint", "int", "smallint", "tinyint"
+    , "binary", "varbinary", "text", "ntext"
+    , "char", "nchar", "varchar", "nvarchar"
+    , "bit", "float", "date", "datetime", "dictwords"
+    ]
 
-determineValidRange :: ValueInfo -> Range -> Bool
-determineValidRange v range = 
-    case minVal of
-        Just m  -> checkRange m maxVal range
-        Nothing -> True
-    where minVal = minValue v
-          maxVal = maxValue v
+identifier :: Parser String
+identifier = (lexeme . try) (p >>= check)
+    where
+      p = (:) <$> letterChar <*> many (try (alphaNumChar) 
+                <|> (char '_') <|> (char '-'))
+      check x = if x `elem` reservedWords
+                  then fail $ "keyword " <> show x <> " cannot be used as an id"
+                  else return x
 
-buildSqlNumType :: ValueInfo -> String -> Range -> (Size -> SqlType) -> SqlType
-buildSqlNumType v name range sqlType
-    | determineValidRange v range = sqlType (determineSize v (fst range))
-    | otherwise                   = outOfRangeErr name
+doubleTab :: Parser ()
+doubleTab = tab >> tab >> return ()
 
-toSqlType :: Maybe ValueInfo -> T.Text -> SqlType
-toSqlType (Just vi) "BigInt"    = buildSqlNumType vi "BigInt" bigIntRange SqlBigInt   
-toSqlType (Just vi) "Int"       = buildSqlNumType vi "Int" intRange SqlInt
-toSqlType (Just vi) "SmallInt"  = buildSqlNumType vi "SmallInt" smallIntRange SqlSmallInt
-toSqlType (Just vi) "TinyInt"   = buildSqlNumType vi "TinyInt" tinyIntRange SqlTinyInt
-toSqlType (Just vi) "Text"      = SqlText      (determineSize vi 0) (textValue vi)
-toSqlType (Just vi) "NText"     = SqlNText     (determineSize vi 0) (textValue vi)
-toSqlType (Just vi) "Char"      = SqlChar      (determineSize vi 0) (textValue vi)
-toSqlType (Just vi) "NChar"     = SqlNChar     (determineSize vi 0) (textValue vi)
-toSqlType (Just vi) "VarChar"   = SqlVarChar   (determineSize vi 0) (textValue vi)
-toSqlType (Just vi) "NVarChar"  = SqlNVarChar  (determineSize vi 0) (textValue vi)
-toSqlType (Just vi) "VarBinary" = SqlVarBinary (determineSize vi 0)
-toSqlType (Just vi) "Binary"    = SqlBinary    (determineSize vi 0) 
-toSqlType Nothing   "BigInt"    = SqlBigInt    (sizeFromTuple bigIntRange)
-toSqlType Nothing   "Int"       = SqlInt       (sizeFromTuple intRange)
-toSqlType Nothing   "SmallInt"  = SqlSmallInt  (sizeFromTuple smallIntRange)
-toSqlType Nothing   "TinyInt"   = SqlTinyInt   (sizeFromTuple tinyIntRange)
-toSqlType Nothing   "Text"      = SqlText      (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "NText"     = SqlNText     (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "Char"      = SqlChar      (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "NChar"     = SqlNChar     (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "VarChar"   = SqlVarChar   (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "NVarChar"  = SqlNVarChar  (sizeFromTuple (0, 80)) (Just DictWords)
-toSqlType Nothing   "VarBinary" = SqlVarBinary (sizeFromTuple (0, 80)) 
-toSqlType Nothing   "Binary"    = SqlBinary    (sizeFromTuple (0, 10))  
-toSqlType _         "Bit"       = SqlBit
-toSqlType _         "Float"     = SqlFloat
-toSqlType _         "Date"      = SqlDate
-toSqlType _         "DateTime"  = SqlDateTime
-toSqlType _         errType     = error $ T.unpack $ T.concat 
-                                    ["Could not parse ", errType, " into a SQL Type."]
+boolean :: Parser Bool
+boolean = (True <$ rword "true")
+    <|> (False <$ rword "false")
 
-outOfRangeErr :: String -> SqlType
-outOfRangeErr valueType = error $ T.unpack $ T.concat 
-                            [ "ERR -- Values given for "
-                            , T.pack valueType, " are out of range."]
+-- | Parser
+
+table :: Parser Table
+table = do
+    md <- metadata
+    col <- many column
+    return $ Table md col
+
+metadata :: Parser MetaData
+metadata = do
+    rword "for"
+    tName <- identifier
+    rword "with"
+    rows <- integer
+    rword "records"
+    return $ MetaData (T.pack tName) rows
+
+column :: Parser Column
+column = do
+    rword "column:"
+    _ <- tab
+    rword "name:" 
+    colName <- identifier
+    _ <- tab
+    rword "nullable:"
+    nullable <- boolean
+    _ <- tab
+    rword "type:"
+    t <- sqlType
+    return $ Column (T.pack colName) t nullable
+
+sqlType :: Parser SqlType
+sqlType = typeGen "text" SqlText
+    <|> typeGen "ntext" SqlNText
+    <|> typeGen "char" SqlChar
+    <|> typeGen "nchar" SqlNChar
+    <|> typeGen "varchar" SqlVarChar
+    <|> typeGen "nvarchar" SqlNVarChar
+    <|> sizeOnlyTypeGen "bigint" SqlBigInt
+    <|> sizeOnlyTypeGen "int" SqlInt
+    <|> sizeOnlyTypeGen "smallint" SqlSmallInt
+    <|> sizeOnlyTypeGen "tinyint" SqlTinyInt
+    <|> sizeOnlyTypeGen "binary" SqlBinary
+    <|> sizeOnlyTypeGen "varbinary" SqlVarBinary
+    <|> (SqlBit <$ rword "bit")
+    <|> (SqlFloat <$ rword "float")
+    <|> (SqlDate <$ rword "date")
+    <|> (SqlDateTime <$ rword "datetime")
+
+dictWords :: Parser (Maybe TextValue)
+dictWords = do
+    doubleTab
+    rword "textvalue:"
+    rword "dictwords"
+    return $ Just DictWords
+
+nameWords :: Parser (Maybe TextValue)
+nameWords = do
+    doubleTab
+    rword "textvalue:"
+    rword "name"
+    return $ Just Name
+
+max :: Parser Integer
+max = do
+    doubleTab
+    rword "max:"
+    i <- integer
+    return i
+
+min :: Parser Integer
+min = do
+    doubleTab
+    rword "min:"
+    i <- integer
+    return i
+
+size :: Parser Size
+size = minAndMax >>= \(mn, mx) -> return $ Size mn mx
+
+    where minAndMax = do
+            (try (do
+                n <- min
+                i <- max
+                return (n, i)) <?> "Min after Max")
+            <|>
+            (try (do
+                i <- max
+                n <- min
+                return (n, i)) <?> "Max after Min")
+            <|>
+            (try (do
+                i <- max
+                return (0, i)) <?> "Max after Min")
+        
+textValue :: Parser (Maybe TextValue)
+textValue = do
+    option Nothing (try dictWords <|> try nameWords)
+
+-- | Parser Generators
+
+typeGen :: String -> (Size -> Maybe TextValue -> SqlType) -> Parser SqlType
+typeGen rw t = do
+    rword rw
+    (size', textVal) <- sizeAndTextVal
+    return $ t size' textVal
+    
+    where sizeAndTextVal = do
+            try (do
+                size' <- size
+                text  <- textValue
+                return (size', text))
+            <|>
+            try (do
+                text  <- textValue
+                size' <- size
+                return (size', text))
+
+sizeOnlyTypeGen :: String -> (Size -> SqlType) -> Parser SqlType
+sizeOnlyTypeGen rw t = do
+    rword rw
+    s <- size
+    let t' = t s
+    case isValidRange t' of
+        True  -> return $ t'
+        False -> fail $ "Error with range for " <> (show t')
+
+-- | Validity Check
+    
+isValidRange :: SqlType -> Bool
+isValidRange (SqlBigInt   (Size mn mx)) = checkRange (mn, mx) bigIntRange
+isValidRange (SqlInt      (Size mn mx)) = checkRange (mn, mx) intRange
+isValidRange (SqlTinyInt  (Size mn mx)) = checkRange (mn, mx) tinyIntRange
+isValidRange (SqlSmallInt (Size mn mx)) = checkRange (mn, mx) smallIntRange
+isValidRange _                          = True
+
+-- | Exported Functions
 
 tableInfoFile :: FilePath
-tableInfoFile = "./config.json"
+tableInfoFile = "./config.qd"
 
-parseConfig :: EitherT String IO Table
-parseConfig = EitherT $ eitherDecode <$> B.readFile tableInfoFile 
-        
 getConfig :: IO Table
 getConfig = do 
-    table <- runEitherT parseConfig
-    case table of
+    input  <- readFile tableInfoFile
+    case parse table "Table" input of
         Right x  -> return x
-        Left err -> error $ err ++ "\n\n"
+        Left err -> error $ show err

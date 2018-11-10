@@ -15,7 +15,7 @@ module QuickData.Randomize
   , dateTime
   ) where
 
-import           Prelude hiding (max)
+import           Prelude hiding (min, max)
 import           Control.Monad.State.Lazy
 import           Data.Char
 import qualified Data.ByteString.Char8 as C
@@ -47,9 +47,10 @@ name Max          = getName >>= \x -> return $ cutoffLength x 8000
 name (Size _ max) = getName >>= \x -> return $ cutoffLength x max
 
 -- | Text Building Helpers
-withinLength :: String -> Integer -> Bool
-withinLength str i | length str < fromInteger i = True
-                   | otherwise      = False
+
+-- withinLength :: String -> Integer -> Bool
+-- withinLength str i | length str < fromInteger i = True
+--                    | otherwise      = False
 
 cutoffLength :: String -> Integer -> String
 cutoffLength str max = cutoffLength' str 0
@@ -90,6 +91,7 @@ getWord (Words wl) = do
 
 randomizeFromRange :: Size -> IO Integer
 randomizeFromRange (Size min max) = randomRIO (min, max)
+randomizeFromRange Max            = randomRIO (0, 8000)
 
 bigInt :: IO Integer
 bigInt = randomRIO bigIntRange

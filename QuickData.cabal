@@ -24,12 +24,12 @@ Library
     QuickData.Sql
 
   build-depends:
-    aeson,
     base >=4.2 && <4.9,
     bytestring,
     datetime,
     either == 4.4.1.1,
     hashmap,
+    megaparsec,
     mtl,
     optparse-applicative,
     random,
