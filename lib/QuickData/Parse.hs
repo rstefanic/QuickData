@@ -164,18 +164,24 @@ typeGen :: String -> (Size -> Maybe TextValue -> SqlType) -> Parser SqlType
 typeGen rw t = do
     rword rw
     (size', textVal) <- sizeAndTextVal
-    return $ t size' textVal
+    case size' of
+        Nothing -> return $ t Max textVal
+        Just s  -> return $ t s textVal
     
     where sizeAndTextVal = do
             try (do
                 size' <- size
                 text  <- textValue
-                return (size', text))
+                return (Just size', text))
             <|>
             try (do
                 text  <- textValue
                 size' <- size
-                return (size', text))
+                return (Just size', text))
+            <|>
+            try (do
+                text <- textValue
+                return (Nothing, text))
 
 sizeOnlyTypeGen :: String -> (Size -> SqlType) -> Parser SqlType
 sizeOnlyTypeGen rw t = do
