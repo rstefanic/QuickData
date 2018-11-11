@@ -13,25 +13,25 @@ be generated.
 for test_table with 20 records
 
 Column:
-	Name: first_name
-	Nullable: false
-	Type: Text
-		Max: 80
-		TextValue: name
+        Name: first_name
+        Nullable: false
+        Type: Text
+                Max: 80
+                TextValue: name
 
 Column:
-	Name: last_name
-	Nullable: false
-	Type: Text
-		Max: 80
-		TextValue: name
+        Name: last_name
+        Nullable: false
+        Type: Text
+                Max: 80
+                TextValue: name
 
 Column:
-	Name: Age
-	Nullable: true
-	Type: TinyInt
-		Min: 20
-		Max: 80
+        Name: Age
+        Nullable: true
+        Type: TinyInt
+                Min: 20
+                Max: 80
 ```
 
 #### Output
@@ -62,11 +62,11 @@ and maxmimum age, then I could define the age column like this:
 
 ```yaml
 Column:
-	Name: kids_age
-	Nullable: false
-	Type: TinyInt
-		Min: 0
-		Max: 18
+        Name: kids_age
+        Nullable: false
+        Type: TinyInt
+                Min: 0
+                Max: 18
 ```
 
 This would then limit the age range from 0 to 18. If I add a minimum or maximum
