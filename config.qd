@@ -1,22 +1,22 @@
-for for_test_data with 10 records
+for test_table with 20 records
 
 Column:
 	Name: first_name
-	nullable: false
-	type: text
-		max: 80
-		textvalue: name
+	Nullable: false
+	Type: text
+		Max: 80
+		TextValue: name
 
 Column:
 	Name: last_name
-	nullable: false
-	type: text
-		max: 80
-		textvalue: name	
+	Nullable: false
+	Type: Text
+		Max: 80
+		TextValue: name
 
 Column:
-	name: age
-	nullable: true
-	type: int
-		min: 20
-		max: 50
+	Name: age
+	Nullable: true
+	Type: TinyInt
+		Min: 20
+		Max: 80
