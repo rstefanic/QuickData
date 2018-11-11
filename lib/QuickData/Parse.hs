@@ -65,7 +65,6 @@ table :: Parser Table
 table = do
     md <- metadata
     col <- many column
-    _ <- eol <?> "End of file"
     return $ Table md col
 
 metadata :: Parser MetaData
