@@ -65,6 +65,7 @@ table :: Parser Table
 table = do
     md <- metadata
     col <- many column
+    _ <- eol <?> "End of file"
     return $ Table md col
 
 metadata :: Parser MetaData
@@ -200,9 +201,12 @@ isValidRange _                          = True
 tableInfoFile :: FilePath
 tableInfoFile = "./config.qd"
 
-getConfig :: IO Table
-getConfig = do 
-    input  <- readFile tableInfoFile
-    case parse table "Table" input of
+getConfig :: Maybe String -> IO Table
+getConfig fileName = do 
+    file <- case fileName of
+        Just f  -> return f
+        Nothing -> return tableInfoFile 
+    input <- readFile file
+    case parse table file input of
         Right x  -> return x
-        Left err -> error $ show err
+        Left err -> error $ parseErrorPretty err

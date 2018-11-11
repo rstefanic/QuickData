@@ -41,7 +41,7 @@ options = Options <$>
 main :: IO ()
 main = do 
     userOpts <- execParser opts
-    config <- Parse.getConfig 
+    config <- Parse.getConfig Nothing
     insertStatement <- SQL.insertValues config 
     case outputFile userOpts of 
       Nothing   -> print insertStatement
