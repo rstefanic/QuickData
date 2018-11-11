@@ -26,26 +26,36 @@ import Options.Applicative
 import qualified QuickData.Sql   as SQL
 import qualified QuickData.Parse as Parse
 
-newtype Options = Options { outputFile :: Maybe String }
+data Options = Options 
+    { outputFile :: Maybe String 
+    , inputFile  :: Maybe String
+    }
 
 options :: Parser Options
 options = Options <$> 
-       optional 
-     ( strOption
-     $ long "output"
-    <> short 'o'
-    <> metavar "FILE"
-    <> help "Output the statement into a text file." 
-     )
+        optional 
+            ( strOption
+            $ long "output"
+            <> short 'o'
+            <> metavar "FILE"
+            <> help "Output the statement into a text file." 
+            )
+        <*> optional
+            ( strOption
+            $ long "input"
+            <> short 'i'
+            <> metavar "FILE"
+            <> help "Inpput file for SQL to be generated."
+            )
 
 main :: IO ()
 main = do 
     userOpts <- execParser opts
-    config <- Parse.getConfig Nothing
+    config <- Parse.getConfig $ inputFile userOpts
     insertStatement <- SQL.insertValues config 
     case outputFile userOpts of 
-      Nothing   -> print insertStatement
-      Just file -> DTI.writeFile file insertStatement
+        Nothing   -> print insertStatement
+        Just file -> DTI.writeFile file insertStatement
 
     where opts = info (options <**> helper)
                    ( fullDesc 
