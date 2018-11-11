@@ -9,29 +9,29 @@ be generated.
 ## Example
 
 #### Config File
-```
+```yaml
 for test_table with 20 records
 
 Column:
-	Name: first_name
-	Nullable: false
-	Type: Text
-		Max: 80
-		TextValue: name
+        Name: first_name
+        Nullable: false
+        Type: Text
+                Max: 80
+                TextValue: name
 
 Column:
-	Name: last_name
-	Nullable: false
-	Type: Text
-		Max: 80
-		TextValue: name
+        Name: last_name
+        Nullable: false
+        Type: Text
+                Max: 80
+                TextValue: name
 
 Column:
-	Name: Age
-	Nullable: true
-	Type: TinyInt
-		Min: 20
-		Max: 80
+        Name: Age
+        Nullable: true
+        Type: TinyInt
+                Min: 20
+                Max: 80
 ```
 
 #### Output
@@ -42,8 +42,7 @@ INSERT INTO test_table (first_name, last_name, age) VALUES (Shayne, Cristina, 70
 ## How To Use
 
 In the root folder where the project sits, there is a config.qd file. Editing
-the config file like the one above will output an insert statement that was  
-specified in the config file.
+the config file like the one above will output an insert statement that was specified in the config file.
 
 The file is a .qd file where the first line is the ```metadata``` (i.e. the
 table name and the row count). The rest is of the file are columns marked by a
@@ -61,13 +60,13 @@ The language markup language for .qd is now case sensitive.
 In the example above, there is an age column. If I wanted to define a minimum
 and maxmimum age, then I could define the age column like this:
 
-```
+```yaml
 Column:
-	Name: kids_age
-	Nullable: false
-	Type: TinyInt
-		Min: 0
-		Max: 18
+        Name: kids_age
+        Nullable: false
+        Type: TinyInt
+                Min: 0
+                Max: 18
 ```
 
 This would then limit the age range from 0 to 18. If I add a minimum or maximum
