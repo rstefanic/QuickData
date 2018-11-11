@@ -9,7 +9,7 @@ be generated.
 ## Example
 
 #### Config File
-```
+```yaml
 for test_table with 20 records
 
 Column:
@@ -42,8 +42,7 @@ INSERT INTO test_table (first_name, last_name, age) VALUES (Shayne, Cristina, 70
 ## How To Use
 
 In the root folder where the project sits, there is a config.qd file. Editing
-the config file like the one above will output an insert statement that was  
-specified in the config file.
+the config file like the one above will output an insert statement that was specified in the config file.
 
 The file is a .qd file where the first line is the ```metadata``` (i.e. the
 table name and the row count). The rest is of the file are columns marked by a
@@ -61,7 +60,7 @@ The language markup language for .qd is now case sensitive.
 In the example above, there is an age column. If I wanted to define a minimum
 and maxmimum age, then I could define the age column like this:
 
-```
+```yaml
 Column:
 	Name: kids_age
 	Nullable: false
