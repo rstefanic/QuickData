@@ -124,13 +124,13 @@ QuickData
 You can add ```-o``` or ```--output``` followed by the name of the file that
 you'd want your output written to.
 ```
-QuickData -o "insert.txt"
+QuickData -o output.sql
 ```
 
 Or you can add ```-i``` or ```--input``` followed by the name of the file you'd
 like the INSERT statement to be written to.
 ```
-QuickData -o "insert.txt"
+QuickData -i input.qd
 ```
 
 Using the output parameter will overwrite any file that already exists.
