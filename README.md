@@ -41,8 +41,10 @@ INSERT INTO test_table (first_name, last_name, age) VALUES (Shayne, Cristina, 70
 
 ## How To Use
 
-In the root folder where the project sits, there is a config.qd file. Editing
-the config file like the one above will output an insert statement that was specified in the config file.
+In the root folder where the project sits, there is a config.qd file (You can
+also specifiy which .qd you'd like read by passing the ```-i``` argument. More
+details below). 
+Editing the config file like the one above will output an insert statement that was specified in the config file.
 
 The file is a .qd file where the first line is the ```metadata``` (i.e. the
 table name and the row count). The rest is of the file are columns marked by a
@@ -119,7 +121,14 @@ You can either run it and have the INSERT statement printed to the console.
 QuickData
 ```
 
-Or you can add ```-o``` or ```--output``` followed by the file that you'd want it to be output to.
+You can add ```-o``` or ```--output``` followed by the name of the file that
+you'd want your output written to.
+```
+QuickData -o "insert.txt"
+```
+
+Or you can add ```-i``` or ```--input``` followed by the name of the file you'd
+like the INSERT statement to be written to.
 ```
 QuickData -o "insert.txt"
 ```
