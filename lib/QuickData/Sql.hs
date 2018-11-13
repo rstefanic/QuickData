@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module QuickData.Sql 
-    (insertValues
+    ( insertValues
     ) where
 
 import Control.Monad.State.Lazy       (evalStateT)

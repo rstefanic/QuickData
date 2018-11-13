@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 
 module QuickData.Parse 
-    ( getConfig, parseTest, pkColumn
+    ( getConfig
     ) where
 
 import qualified Data.Text                  as T
