@@ -82,8 +82,8 @@ getPKColumnFromTable t = isPKColumn cols
     where cols = columns t
           isPKColumn []     = Nothing
           isPKColumn (x:xs)   
-            | c@(SqlPK _ _) <- columnType x = Just x
-            | otherwise     <- columnType x = isPKColumn xs
+            | (SqlPK _ _) <- columnType x = Just x
+            | otherwise                   = isPKColumn xs
 
 -- These are the ranges for a given number types in SQLServer
 bigIntRange, intRange, tinyIntRange, smallIntRange :: (Integer, Integer)

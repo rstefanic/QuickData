@@ -1,18 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module QuickData.Sql 
-    ( insertValues
+    (insertValues
     ) where
 
-import Control.Monad.State.Lazy
+import Control.Monad.State.Lazy       (evalStateT)
+import Control.Monad.Trans.State.Lazy
 import Data.DateTime 
+import Data.Functor.Identity
 import Data.List                as L
+import Data.Text
 import Data.Text                as T
 import Prelude                  hiding (min, max)
 import System.Random            (randomRIO)
 
 import QuickData.Internal
 import qualified QuickData.Randomize as Randomize
+
+type ColumnStates a = StateT [Column] Identity a
 
 insertValues :: Table -> IO Text
 insertValues table = do
@@ -26,26 +31,41 @@ insertValues table = do
                       , ";"
                       ] 
 
+
 createValuesFromTable :: Table -> IO [Text]
-createValuesFromTable table = traverse id $ createValues (columns table)
-        (numberOfRecords $ metaData table)
-    where createValues columns' n 
-                | n > 1 = getValuesForColumn columns' : createValues columns' (n - 1)
-                | otherwise = [getValuesForColumn columns']
+createValuesFromTable t = traverse id $ createValues cols number
+    where number = numberOfRecords $ metaData t
+          cols = columns t
+          createValues c n =
+              let (values, c') = runIdentity $ runStateT getValuesForColumn c
+              in if n > 1
+                  then values : createValues c' (n - 1)
+                  else [values]
 
-getValuesForColumn :: [Column] -> IO Text
-getValuesForColumn = wrapInsertInParentheses 
-                     . fmap (T.intercalate ", ") 
-                     . sequence 
-                     . fmap valueOnlyOrNulls
+getValuesForColumn :: ColumnStates (IO Text)
+getValuesForColumn = do
+    s <- get
+    let values = genColValue <$> s
+    let values' = (wrapInsertInParentheses . fmap (T.intercalate ", ") . sequence) values
+    let updatedCols = updateCols s
+    put updatedCols
+    return values'
 
-valueOnlyOrNulls :: Column -> IO Text
-valueOnlyOrNulls c | allowNull c = do
-                        r <- randomRIO (0, 1) :: IO Int
-                        if r == 1
-                            then return $ pack "NULL"
-                            else getDataFromType c
-                   | otherwise   = getDataFromType c
+updateCols :: [Column] -> [Column]
+updateCols []     = []
+updateCols (x:xs) 
+    | (SqlPK t n) <- columnType x = (x { columnType = SqlPK t (n + 1) }) : updateCols xs
+    | otherwise                   = x : updateCols xs
+
+genColValue :: Column -> IO Text
+genColValue c 
+    | (SqlPK _ i) <- columnType c  = return $ (pack . show) i
+    | allowNull c = do
+        r <- randomRIO (0, 1) :: IO Int
+        if r == 1
+            then return $ pack "NULL"
+            else getDataFromType c
+    | otherwise   = getDataFromType c
     where getDataFromType = getRandomizedTypeData . columnType
 
 wrapInsertInParentheses :: IO Text -> IO Text
@@ -76,6 +96,7 @@ getRandomizedTypeData (SqlVarChar size tv)  = case tv of
 getRandomizedTypeData (SqlNVarChar size tv) = case tv of
                                                 Just Name -> pack <$> Randomize.name size
                                                 _         -> buildTexts Randomize.buildUnicodeTexts size
+getRandomizedTypeData _                     = error $ "Could not determine type"
 
 castToBinary :: Size -> Integer -> String
 castToBinary Max value          = castToBinary (Size 0 8000) value
