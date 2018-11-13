@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 
 module QuickData.Parse 
-    ( getConfig
+    ( getConfig, parseTest, pkColumn
     ) where
 
 import qualified Data.Text                  as T
@@ -84,8 +84,9 @@ pkColumn = do
     rword "name:" 
     colName <- identifier
     _ <- tab
+    rword "type:"
     t <- sqlType
-    _ <- tab
+    doubleTab
     rword "from:"
     start <- integer
     return $ Column (T.pack colName) (SqlPK t start) False
@@ -151,22 +152,26 @@ min = do
     return i
 
 size :: Parser Size
-size = minAndMax >>= \(mn, mx) -> return $ Size mn mx
+size = minAndMax >>= \result -> 
+    case result of
+        Just (mn, mx) -> return $ Size mn mx
+        Nothing       -> return Max
 
     where minAndMax = do
             (try (do
                 n <- min
                 i <- max
-                return (n, i)) <?> "Min after Max")
+                return $ Just (n, i)) <?> "Min after Max")
             <|>
             (try (do
                 i <- max
                 n <- min
-                return (n, i)) <?> "Max after Min")
+                return $ Just (n, i)) <?> "Max after Min")
             <|>
             (try (do
                 i <- max
-                return (0, i)) <?> "Max after Min")
+                return $ Just (0, i)) <?> "Max after Min")
+            <|> return Nothing
         
 textValue :: Parser (Maybe TextValue)
 textValue = do
