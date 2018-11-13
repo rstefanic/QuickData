@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE OverloadedStrings         #-}
 
 module QuickData.Internal 
     ( Table(..)
@@ -13,6 +13,8 @@ module QuickData.Internal
     , tinyIntRange
     , smallIntRange
     , checkRange
+    , getPKColumnFromTable
+    , pkStart
     ) where
 
 import qualified Data.Text as T
@@ -49,7 +51,7 @@ data TextValue
     | Name 
     deriving (Eq, Show)
 
-data SqlType 
+data SqlType
     = SqlBigInt    Size
     | SqlInt       Size
     | SqlSmallInt  Size
@@ -66,9 +68,22 @@ data SqlType
     | SqlFloat
     | SqlDate
     | SqlDateTime
+    | SqlPK SqlType Integer
     deriving (Eq, Show)
 
 -- | Range Constants and helper functions
+
+pkStart :: SqlType -> Integer
+pkStart (SqlPK _ i) = i
+pkStart _           = 0
+
+getPKColumnFromTable :: Table -> Maybe Column
+getPKColumnFromTable t = isPKColumn cols
+    where cols = columns t
+          isPKColumn []     = Nothing
+          isPKColumn (x:xs)   
+            | c@(SqlPK _ _) <- columnType x = Just x
+            | otherwise     <- columnType x = isPKColumn xs
 
 -- These are the ranges for a given number types in SQLServer
 bigIntRange, intRange, tinyIntRange, smallIntRange :: (Integer, Integer)
@@ -77,7 +92,8 @@ intRange      = (-2147483648, 2147483647)
 tinyIntRange  = (0, 255)
 smallIntRange = (-32768, 32767)
 
-checkRange :: Ord a => (a, a) -> (a, a) -> Bool
+-- Make sure a given range is within another range
+checkRange :: forall a. Ord a => (a, a) -> (a, a) -> Bool
 checkRange (givenMin, givenMax) (min', max') 
     | givenMin >= min' && givenMax <= max' = True
     | otherwise                            = False

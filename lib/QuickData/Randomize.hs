@@ -60,6 +60,7 @@ newtype Words = Words [String] deriving (Eq, Show)
 
 utf8Dict :: IO Words
 utf8Dict = do
+  -- Read file in and set encoding to UTF8
   h <- openFile "data/dict.txt" ReadMode
   hSetEncoding h latin1
   wl <- hGetContents h
