@@ -20,6 +20,8 @@ import           Control.Monad.State.Lazy
 import           Data.Char
 import qualified Data.ByteString.Char8 as C
 import           Data.DateTime
+import           System.Environment ()
+import           System.IO
 import           System.Random  (randomIO, randomRIO)
 
 import           QuickData.Internal
@@ -48,10 +50,6 @@ name (Size _ max) = getName >>= \x -> return $ cutoffLength x max
 
 -- | Text Building Helpers
 
--- withinLength :: String -> Integer -> Bool
--- withinLength str i | length str < fromInteger i = True
---                    | otherwise      = False
-
 cutoffLength :: String -> Integer -> String
 cutoffLength str max = cutoffLength' str 0
   where cutoffLength' []     _ = []
@@ -62,7 +60,9 @@ newtype Words = Words [String] deriving (Eq, Show)
 
 utf8Dict :: IO Words
 utf8Dict = do
-  wl <- readFile "data/dict.txt"
+  h <- openFile "data/dict.txt" ReadMode
+  hSetEncoding h latin1
+  wl <- hGetContents h
   return (Words $ lines wl)
 
 unicodeDict :: IO Words

@@ -34,7 +34,7 @@ rword word = (lexeme . try) (string' word *> notFollowedBy alphaNumChar)
 
 reservedWords :: [String]
 reservedWords = 
-    [ "for", "with", "records", "column"
+    [ "for", "with", "records", "column", "pkcolumn"
     , "name", "nullable", "type", "maxvalue"
     , "textvalue", "min", "max", "true", "false"
     , "bigint", "int", "smallint", "tinyint"
@@ -64,7 +64,7 @@ boolean = (True <$ rword "true")
 table :: Parser Table
 table = do
     md <- metadata
-    col <- many column
+    col <- many (try column <|> try pkColumn)
     return $ Table md col
 
 metadata :: Parser MetaData
@@ -75,6 +75,20 @@ metadata = do
     rows <- integer
     rword "records"
     return $ MetaData (T.pack tName) rows
+
+pkColumn :: Parser Column
+pkColumn = do
+    rword "column:"
+    rword "pk"
+    _ <- tab
+    rword "name:" 
+    colName <- identifier
+    _ <- tab
+    t <- sqlType
+    _ <- tab
+    rword "from:"
+    start <- integer
+    return $ Column (T.pack colName) (SqlPK t start) False
 
 column :: Parser Column
 column = do
