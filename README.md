@@ -12,6 +12,11 @@ be generated.
 ```yaml
 for test_table with 20 records
 
+Column: PK
+        Name: id
+        Type: TinyInt
+                From: 10
+
 Column:
         Name: first_name
         Nullable: false
@@ -36,7 +41,7 @@ Column:
 
 #### Output
 ```
-INSERT INTO test_table (first_name, last_name, age) VALUES (Shayne, Cristina, 70), (Orly, Jeni, 42), (Tera, Cybil, NULL), (Leslie, Frederica, 64), (Wren, Jacinthe, NULL), (Melisa, Nissie, 71), (Reeta, Rosita, NULL), (Nelia, Keely, NULL), (Vally, Vevay, 78), (Arda, Rivalee, NULL), (Almire, Michaelina, 57), (Ophelie, Britni, 52), (Kathe, Moyna, NULL), (Brandie, Liuka, NULL), (Dorothea, Ailyn, NULL), (Gisele, Bianka, NULL), (Shirl, Thekla, 30), (Martha, Arlie, NULL), (Elonore, Genny, 23), (Theresita, Johnna, NULL);
+INSERT INTO test_table (id, first_name, last_name, age) VALUES (10, Becca, Ailina, NULL), (11, Lynnea, Kirstyn, NULL), (12, Jackelyn, Marlene, NULL), (13, Adena, Dominica, NULL), (14, Wenona, Morissa, NULL), (15, Arabelle, Laural, NULL), (16, Candace, Alexis, 28), (17, Nert, Milzie, 77), (18, Ami, Trisha, NULL), (19, Diandra, Audie, NULL), (20, Willa, Blinni, 79), (21, Danette, Ulrica, NULL), (22, Libbie, Henka, 74), (23, Genevra, Kailey, NULL), (24, Fara, Josie, NULL), (25, Allie, Kara-Lynn, NULL), (26, Andie, Camellia, NULL), (27, Deb, Annabelle, 41), (28, Adele, Rosene, NULL), (29, Kizzee, Pepita, 47);
 ```
 
 ## How To Use
@@ -77,6 +82,12 @@ value that is outside of the range of that type, an error will be thrown. If no 
 In addition to the SQL number types, I can also add a minimum and maximum range for a text column. 
 
 Adding a ```TextValue``` option to a column that doesn't have text will be discarded. If the SQL type supports unicode, then the randomized data will Greek.
+
+You can also designate a special column by marking it with ```PK``` after the
+```Column```. This will mark the column as the primary key, and you can give it
+the special keyword of ```From``` in the addtional type information section
+under the defined type. Currently, the ```PK``` marked only works for the SQL
+number types that QuickData supports (```BitInt```, ```Int```, ```SmallInt```, and ```TinyInt```).
 
 Currently, QuickData recognizes the following SQL Types:
 
