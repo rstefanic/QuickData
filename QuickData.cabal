@@ -35,7 +35,8 @@ Library
     random,
     semigroups,
     text,
-    transformers
+    transformers,
+    vector
 
 
 Executable QuickData

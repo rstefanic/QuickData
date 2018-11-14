@@ -18,8 +18,9 @@ module QuickData.Randomize
 import           Prelude hiding (min, max)
 import           Control.Monad.State.Lazy
 import           Data.Char
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8       as C
 import           Data.DateTime
+import qualified Data.Vector                 as V
 import           System.Environment ()
 import           System.IO
 import           System.Random  (randomIO, randomRIO)
@@ -33,7 +34,8 @@ buildUTF8Texts max = StateT $
     \(currentLength, str) -> do 
         word <- liftIO utf8DictWord
         if length word + currentLength < fromInteger max
-          then runStateT (buildUTF8Texts max) (currentLength + length word, str ++ [word])
+          then do
+                   runStateT (buildUTF8Texts max) (currentLength + length word, str ++ [word])
           else return (str, (currentLength, str))
 
 buildUnicodeTexts :: Integer -> TextResult
@@ -56,25 +58,23 @@ cutoffLength str max = cutoffLength' str 0
         cutoffLength' (x:xs) n | n < max   = x : cutoffLength' xs (n + 1)
                                | otherwise = [x]
 
-newtype Words = Words [String] deriving (Eq, Show)
-
-utf8Dict :: IO Words
+utf8Dict :: IO (V.Vector String)
 utf8Dict = do
   -- Read file in and set encoding to UTF8
   h <- openFile "data/dict.txt" ReadMode
   hSetEncoding h latin1
   wl <- hGetContents h
-  return (Words $ lines wl)
+  return (V.fromList $ lines wl)
 
-unicodeDict :: IO Words
+unicodeDict :: IO (V.Vector String)
 unicodeDict = do
   wl <- readFile "data/greek.txt"
-  return (Words $ lines wl)
+  return (V.fromList $ lines wl)
 
-names :: IO Words
+names :: IO (V.Vector String)
 names = do
   nl <- readFile "data/names.txt"
-  return (Words $ lines nl)
+  return (V.fromList $ lines nl)
 
 getName :: IO String
 getName = names >>= getWord
@@ -85,10 +85,10 @@ utf8DictWord = utf8Dict >>= getWord
 unicodeDictWord :: IO String
 unicodeDictWord = unicodeDict >>= getWord
 
-getWord :: Words -> IO String
-getWord (Words wl) = do 
-  randomIndex <- randomRIO (0, length wl - 1)
-  return $ filter (/= '\'') $ wl !! randomIndex
+getWord :: V.Vector String -> IO String
+getWord wl = do 
+  randomIndex <- randomRIO (0, V.length wl - 1)
+  return $ filter (/= '\'') $ wl V.! randomIndex
 
 randomizeFromRange :: Size -> IO Integer
 randomizeFromRange (Size min max) = randomRIO (min, max)
