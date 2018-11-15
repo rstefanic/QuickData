@@ -4,7 +4,7 @@ module QuickData.Sql
     ( insertValues
     ) where
 
-import Control.Monad.State.Lazy       (evalStateT)
+import Control.Monad.State.Lazy (evalStateT)
 import Control.Monad.Trans.State.Lazy
 import Data.DateTime 
 import Data.Functor.Identity
@@ -43,8 +43,9 @@ getValuesForColumn :: ColumnStates (IO T.Text)
 getValuesForColumn = do
     s <- get
     let values = genColValue <$> s
-    let values' = (wrapInsertInParentheses . 
-                      fmap (T.intercalate ", ") . sequence) values
+    let values' = (fmap wrapInsertInParentheses .
+                   fmap (T.intercalate ", ") . 
+                   sequence) values
     let updatedCols = updateCols s
     put updatedCols
     return values'
@@ -54,7 +55,8 @@ updateCols []     = []
 updateCols (x:xs) 
     | (SqlPK t n) <- columnType x = 
             (x { columnType = SqlPK t (n + 1) }) : updateCols xs
-    | otherwise                   = x : updateCols xs
+
+    | otherwise = x : updateCols xs
 
 genColValue :: Column -> IO T.Text
 genColValue c 
@@ -67,11 +69,11 @@ genColValue c
     | otherwise   = getDataFromType c
     where getDataFromType = getRandomizedTypeData . columnType
 
-wrapInsertInParentheses :: IO Text -> IO T.Text
-wrapInsertInParentheses text = text >>= \text' -> return $ T.concat ["(", text', ")"]
+wrapInsertInParentheses :: T.Text -> T.Text
+wrapInsertInParentheses txt = T.concat ["(", txt, ")"]
 
-wrapInSingleQuotes :: IO Text -> IO T.Text
-wrapInSingleQuotes text = text >>= \text' -> return $ T.concat ["'", text', "'"]
+wrapInSingleQuotes :: T.Text -> T.Text
+wrapInSingleQuotes txt = T.concat ["'", txt, "'"]
 
 getRandomizedTypeData :: SqlType -> IO T.Text 
 getRandomizedTypeData (SqlBigInt   r)       = T.pack . show <$> Randomize.randomizeFromRange r
@@ -118,6 +120,6 @@ castToVarBinary (Size _ max) value = T.concat ["CAST( '", value
 buildTexts :: (Integer -> Randomize.TextResult) -> Size -> IO T.Text
 buildTexts textResult Max = buildTexts textResult $ Size 0 8000
 buildTexts textResult (Size minRange maxRange) = do
-  randomMin <- randomRIO (minRange, maxRange)
-  wrapInSingleQuotes $ 
-    evalStateT (textResult maxRange) (fromIntegral randomMin, T.empty)
+    randomMin <- randomRIO (minRange, maxRange)
+    wrapInSingleQuotes <$>
+      evalStateT (textResult maxRange) (fromIntegral randomMin, T.empty)
