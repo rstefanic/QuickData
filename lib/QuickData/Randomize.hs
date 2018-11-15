@@ -20,6 +20,9 @@ import           Control.Monad.State.Lazy
 import           Data.Char
 import qualified Data.ByteString.Char8       as C
 import           Data.DateTime
+import           Data.Monoid
+import qualified Data.Text                   as T
+import qualified Data.Text.IO                as TI
 import qualified Data.Vector                 as V
 import           System.Environment ()
 import           System.IO
@@ -27,68 +30,66 @@ import           System.Random  (randomIO, randomRIO)
 
 import           QuickData.Internal
 
-type TextResult = StateT (Int, [String]) IO [String]
+type TextResult = StateT (Int, T.Text) IO T.Text 
 
 buildUTF8Texts :: Integer -> TextResult
 buildUTF8Texts max = StateT $ 
-    \(currentLength, str) -> do 
+    \(currentLength, txt) -> do 
         word <- liftIO utf8DictWord
-        if length word + currentLength < fromInteger max
-          then do
-                   runStateT (buildUTF8Texts max) (currentLength + length word, str ++ [word])
-          else return (str, (currentLength, str))
+        if T.length word + currentLength < fromInteger max
+          then runStateT (buildUTF8Texts max) 
+                 (currentLength + T.length word, 
+                  txt <> (T.singleton ' ') <> word)
+          else return (txt, (currentLength, txt))
 
 buildUnicodeTexts :: Integer -> TextResult
 buildUnicodeTexts max = StateT $ 
-    \(currentLength, str) -> do
+    \(currentLength, txt) -> do
         word <- liftIO unicodeDictWord
-        if length word + currentLength < fromInteger max
-          then runStateT (buildUnicodeTexts max) (currentLength + length word, str ++ [word])
-          else return (str, (currentLength, str))
+        if T.length word + currentLength < fromInteger max
+          then runStateT (buildUnicodeTexts max) 
+                   (currentLength + T.length word,
+                    txt <> (T.singleton ' ') <> word)
+          else return (txt, (currentLength, txt))
 
-name :: Size -> IO String
-name Max          = getName >>= \x -> return $ cutoffLength x 8000
-name (Size _ max) = getName >>= \x -> return $ cutoffLength x max
+name :: Size -> IO T.Text
+name Max          = getName >>= \x -> return $ T.take 8000 x
+name (Size _ max) = getName >>= \x -> return $ T.take (fromIntegral max) x
 
 -- | Text Building Helpers
 
-cutoffLength :: String -> Integer -> String
-cutoffLength str max = cutoffLength' str 0
-  where cutoffLength' []     _ = []
-        cutoffLength' (x:xs) n | n < max   = x : cutoffLength' xs (n + 1)
-                               | otherwise = [x]
-
-utf8Dict :: IO (V.Vector String)
+utf8Dict :: IO (V.Vector T.Text)
 utf8Dict = do
   -- Read file in and set encoding to UTF8
   h <- openFile "data/dict.txt" ReadMode
   hSetEncoding h latin1
-  wl <- hGetContents h
-  return (V.fromList $ lines wl)
+  wl <- TI.hGetContents h
+  return (V.fromList $ T.lines wl)
 
-unicodeDict :: IO (V.Vector String)
+unicodeDict :: IO (V.Vector T.Text)
 unicodeDict = do
-  wl <- readFile "data/greek.txt"
-  return (V.fromList $ lines wl)
+  wl <- TI.readFile "data/greek.txt"
+  return (V.fromList $ T.lines wl)
 
-names :: IO (V.Vector String)
+names :: IO (V.Vector T.Text)
 names = do
-  nl <- readFile "data/names.txt"
-  return (V.fromList $ lines nl)
+  nl <- TI.readFile "data/names.txt"
+  return (V.fromList $ T.lines nl)
 
-getName :: IO String
+getName :: IO T.Text
 getName = names >>= getWord
 
-utf8DictWord :: IO String
+utf8DictWord :: IO T.Text
 utf8DictWord = utf8Dict >>= getWord
 
-unicodeDictWord :: IO String
+unicodeDictWord :: IO T.Text
 unicodeDictWord = unicodeDict >>= getWord
 
-getWord :: V.Vector String -> IO String
+getWord :: V.Vector T.Text -> IO T.Text
 getWord wl = do 
   randomIndex <- randomRIO (0, V.length wl - 1)
-  return $ filter (/= '\'') $ wl V.! randomIndex
+  let removeApostrophe = T.replace (T.singleton '\'') T.empty
+  return $ removeApostrophe $ wl V.! randomIndex
 
 randomizeFromRange :: Size -> IO Integer
 randomizeFromRange (Size min max) = randomRIO (min, max)
