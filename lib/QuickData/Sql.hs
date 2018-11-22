@@ -4,6 +4,7 @@ module QuickData.Sql
     ( insertValues
     ) where
 
+import Control.Monad            (when)
 import Control.Monad.State.Lazy (evalStateT)
 import Control.Monad.Trans.State.Lazy
 import Data.DateTime 
@@ -19,6 +20,9 @@ type ColumnStates a = StateT [Column] Identity a
 
 insertValues :: Table -> IO T.Text
 insertValues table = do
+    when (not $ checkPKRanges table) $ do 
+        error $ "An initial range given for a PK will exceed the upper " ++
+                "bounds of that type." 
     values <- createValuesFromTable table
     let columnNames = columnName <$> columns table
     return $ T.concat [ "INSERT INTO "
@@ -28,6 +32,21 @@ insertValues table = do
                       , T.intercalate ", " values
                       , ";"
                       ] 
+
+checkPKRanges :: Table -> Bool
+checkPKRanges t = Prelude.all (== True) $ go c 
+    where n  = numberOfRecords $ metaData t
+          c  = columnType <$> columns t
+          go []                         = [True]
+          go (x:xs) | (SqlPK t' i) <- x = typeWithinRange t' i n : go xs
+                    | otherwise         = [True] ++ go xs
+
+typeWithinRange :: SqlType -> Integer -> Integer -> Bool
+typeWithinRange (SqlBigInt _)   i n = checkRange (i, i + n) bigIntRange
+typeWithinRange (SqlInt _)      i n = checkRange (i, i + n) intRange
+typeWithinRange (SqlTinyInt _)  i n = checkRange (i, i + n) tinyIntRange
+typeWithinRange (SqlSmallInt _) i n = checkRange (i, i + n) smallIntRange
+typeWithinRange _ _ _               = True
 
 createValuesFromTable :: Table -> IO [T.Text]
 createValuesFromTable t = traverse id $ createValues cols number

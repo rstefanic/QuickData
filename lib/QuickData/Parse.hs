@@ -27,7 +27,7 @@ lexeme :: Parser a -> Parser a
 lexeme = L.lexeme spaceConsumer
 
 integer :: Parser Integer
-integer = lexeme L.decimal
+integer = L.signed spaceConsumer (lexeme L.decimal)
 
 rword :: String -> Parser ()
 rword word = (lexeme . try) (string' word *> notFollowedBy alphaNumChar)
