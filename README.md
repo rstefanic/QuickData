@@ -145,3 +145,9 @@ QuickData -i input.qd
 ```
 
 Using the output parameter will overwrite any file that already exists.
+
+# Special Thanks
+Special thanks to [Max Woolf](https://github.com/minimaxir) for his maintenance
+of
+[big-list-of-naughty-strings](https://github.com/minimaxir/big-list-of-naughty-strings)
+where I took his curated list of problematic strings.

@@ -114,12 +114,14 @@ getRandomizedTypeData (SqlVarBinary size)   =
         \value -> return $ castToVarBinary size value
 
 getRandomizedTypeData (SqlVarChar size tv)  = case tv of
-    Just Name -> Randomize.name size
-    _         -> buildTexts Randomize.buildUTF8Texts size
+    Just Name          -> Randomize.name size
+    Just ProblemString -> Randomize.problemString
+    _                  -> buildTexts Randomize.buildUTF8Texts size
 
 getRandomizedTypeData (SqlNVarChar size tv) = case tv of
-    Just Name -> Randomize.name size
-    _         -> buildTexts Randomize.buildUnicodeTexts size
+    Just Name          -> Randomize.name size
+    Just ProblemString -> Randomize.problemString
+    _                  -> buildTexts Randomize.buildUnicodeTexts size
 
 getRandomizedTypeData _                     = error $ "Could not determine type"
 

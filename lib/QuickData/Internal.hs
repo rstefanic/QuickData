@@ -49,6 +49,7 @@ data Size
 data TextValue 
     = DictWords
     | Name 
+    | ProblemString
     deriving (Eq, Show)
 
 data SqlType

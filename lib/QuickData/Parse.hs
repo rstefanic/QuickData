@@ -38,7 +38,7 @@ reservedWords =
     , "name", "nullable", "type", "maxvalue"
     , "textvalue", "min", "max", "true", "false"
     , "bigint", "int", "smallint", "tinyint"
-    , "binary", "varbinary", "text", "ntext"
+    , "binary", "varbinary", "text", "ntext", "problemstring"
     , "char", "nchar", "varchar", "nvarchar"
     , "bit", "float", "date", "datetime", "dictwords"
     ]
@@ -137,6 +137,13 @@ nameWords = do
     rword "name"
     return $ Just Name
 
+problemStrings :: Parser (Maybe TextValue)
+problemStrings = do
+    doubleTab
+    rword "textvalue:"
+    rword "problemstring"
+    return $ Just ProblemString
+
 max :: Parser Integer
 max = do
     doubleTab
@@ -175,7 +182,7 @@ size = minAndMax >>= \result ->
         
 textValue :: Parser (Maybe TextValue)
 textValue = do
-    option Nothing (try dictWords <|> try nameWords)
+    option Nothing (try dictWords <|> try nameWords <|> try problemStrings)
 
 -- | Parser Generators
 

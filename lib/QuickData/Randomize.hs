@@ -4,6 +4,7 @@
 module QuickData.Randomize 
   ( TextResult
   , name 
+  , problemString
   , buildUTF8Texts
   , buildUnicodeTexts
   , randomizeFromRange 
@@ -66,6 +67,13 @@ utf8Dict = do
   wl <- TI.hGetContents h
   return (V.fromList $ T.lines wl)
 
+problemStrings :: IO (V.Vector T.Text)
+problemStrings = do
+  h <- openFile "data/problems.txt" ReadMode
+  hSetEncoding h latin1
+  wl <- TI.hGetContents h
+  return (V.fromList $ T.lines wl)
+
 unicodeDict :: IO (V.Vector T.Text)
 unicodeDict = do
   wl <- TI.readFile "data/greek.txt"
@@ -81,6 +89,9 @@ getName = names >>= getWord
 
 utf8DictWord :: IO T.Text
 utf8DictWord = utf8Dict >>= getWord
+
+problemString :: IO T.Text
+problemString = problemStrings >>= getWord
 
 unicodeDictWord :: IO T.Text
 unicodeDictWord = unicodeDict >>= getWord
